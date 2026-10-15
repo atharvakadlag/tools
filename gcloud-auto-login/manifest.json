@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "gcloud Auto Login",
+  "version": "1.0.0",
+  "description": "Auto-picks your Google account and approves the consent screen for `gcloud auth login`, then closes the tab.",
+  "permissions": ["webNavigation", "storage"],
+  "host_permissions": ["https://accounts.google.com/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://accounts.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

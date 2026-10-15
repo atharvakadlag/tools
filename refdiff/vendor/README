@@ -1,0 +1,2 @@
+hl.js = highlight.js 11.9.0 (BSD-3-Clause) common bundle from cdnjs
+  + languages: dockerfile, protobuf, scala, groovy
