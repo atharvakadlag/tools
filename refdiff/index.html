@@ -140,6 +140,34 @@ table.u tr.sel>td:first-child,table.s tr.sel-o>td:first-child,table.s tr.sel-n>t
 #pop .note{color:var(--mut);font-size:11px}
 #pop .btn.ok{background:var(--addfg);border-color:var(--addfg);color:#fff}
 #pop .x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:13px;padding:0 2px}
+/* code navigation panel */
+#nav{position:fixed;top:48px;right:0;bottom:0;width:min(980px,64vw);z-index:15;display:flex;flex-direction:column;
+  background:var(--bg);border-left:1px solid var(--bd);box-shadow:-14px 0 34px rgba(0,0,0,.28)}
+#nav[hidden]{display:none}
+#nav>header{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--bd);background:var(--bar)}
+#nav .x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:14px}
+#nvTitle{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nvTitle .rv{font-weight:400;color:var(--mut);margin-left:8px;font-size:12px}
+#nvStat{color:var(--mut);font-size:11px;white-space:nowrap}
+#nvList{max-height:40%;overflow:auto;border-bottom:1px solid var(--bd);font-size:12px;flex:none}
+#nvList h4{margin:0;padding:5px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);background:var(--side);position:sticky;top:0;z-index:1}
+#nvList .grp{padding:5px 10px 1px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
+#nvList .grp span{color:var(--mut);font-weight:400}
+#nvList .it{display:flex;gap:10px;align-items:baseline;padding:2px 10px 2px 18px;cursor:pointer;white-space:nowrap}
+#nvList .it:hover{background:var(--bar)}#nvList .it.on{background:var(--hh)}
+#nvList .kd{flex:none;width:62px;color:var(--mut);font-size:10px;text-transform:uppercase}
+#nvList .loc{flex:none;color:var(--acc);font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+#nvList .tx{min-width:0;overflow:hidden;text-overflow:ellipsis;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--code,var(--fg))}
+#nvList .tx b{background:var(--selbg);border-radius:2px;font-weight:inherit}
+#nvList .msg{margin:10px;color:var(--mut)}
+#nvFileHdr{flex:none;padding:5px 10px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;border-bottom:1px solid var(--bd);background:var(--bar);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nvFileHdr:empty{display:none}
+#nvFileHdr .rv{color:var(--mut);font-weight:400}
+#nvFile{flex:1;overflow:auto}
+#nvFile td.n{padding-left:10px;cursor:default}#nvFile td.n::after{display:none!important}
+#nvFile tr.tgt>td{background-image:linear-gradient(var(--selbg),var(--selbg))}
+#nvFile tr.tgt>td.n{box-shadow:inset 3px 0 var(--acc)}
+body.cmd td.c{cursor:pointer}
 #dd{position:fixed;z-index:30;width:min(640px,calc(100vw - 16px));max-height:min(420px,70vh);overflow:auto;padding:4px;
   background:var(--bg);border:1px solid var(--bd);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:12px}
 #dd[hidden]{display:none}
@@ -182,8 +210,14 @@ kbd{font:11px ui-monospace,Menlo,monospace;border:1px solid var(--bd);border-rad
   <nav id="side">
     <input id="filter" placeholder="Filter files  ( / )" spellcheck="false">
     <div id="list"></div>
-    <div id="help"><kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter<br>click/drag line numbers to select · <kbd>c</kbd> copy ref · <kbd>Esc</kbd> clear</div>
+    <div id="help"><kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter<br><kbd>⌘</kbd>-click: definition · <kbd>⌘⇧</kbd>-click: references<br>click/drag line numbers to select · <kbd>c</kbd> copy ref · <kbd>Esc</kbd> clear</div>
   </nav>
+  <aside id="nav" hidden>
+  <header><button class="btn" id="nvBack" title="Back">←</button><span id="nvTitle"></span><span class="sp"></span><span id="nvStat"></span><button class="x" id="nvClose" title="Close (Esc)">✕</button></header>
+  <div id="nvList"></div>
+  <div id="nvFileHdr"></div>
+  <div id="nvFile"></div>
+</aside>
   <main id="main"><div id="msg"><button class="x" title="Dismiss">✕</button><span></span></div><div id="err"></div><div id="empty">No differences.</div><div id="files"></div></main>
 </div>
 <script src="/hl.js"></script>
@@ -508,6 +542,106 @@ addEventListener('mouseup',()=>{if(dragging){dragging=false;showPop()}});
 addEventListener('mousedown',ev=>{if(sel&&!pop.hidden&&!ev.target.closest('td.n')&&!ev.target.closest('#pop'))clearSel()});
 const dropStaleSel=()=>{if(sel&&!sel.tbl.isConnected)clearSel()};
 
+// ---- code navigation: ⌘-click → definition, ⌘⇧-click → references (tree-sitter, server side) ----
+const nv={hist:[],cache:new Map(),file:null};
+const sideRev=side=>side==='o'?(((D.a||'').split('..')[0])||'HEAD'):(D.staged?'':(D.b||''));
+const revLabel=rev=>rev?rev:(D&&D.staged?'index':'working tree');
+function wordAt(ev,td){
+  let node,off;
+  if(document.caretPositionFromPoint){const p=document.caretPositionFromPoint(ev.clientX,ev.clientY);if(!p)return null;node=p.offsetNode;off=p.offset}
+  else if(document.caretRangeFromPoint){const r=document.caretRangeFromPoint(ev.clientX,ev.clientY);if(!r)return null;node=r.startContainer;off=r.startOffset}
+  if(!node||!td.contains(node))return null;
+  const w=document.createTreeWalker(td,NodeFilter.SHOW_TEXT);let text='',pos=-1,n;
+  while((n=w.nextNode())){if(n.parentElement.closest('.ne'))continue;if(n===node)pos=text.length+off;text+=n.data}
+  if(pos<0)return null;
+  const isW=c=>c&&/[\p{L}\p{N}_$]/u.test(c);
+  let a=pos,b=pos;while(a>0&&isW(text[a-1]))a--;while(b<text.length&&isW(text[b]))b++;
+  const name=text.slice(a,b);
+  return name&&!/^[\p{N}]/u.test(name)?name:null;
+}
+const hlName=(t,name)=>esc(t).replace(new RegExp('(^|[^\\w$])('+name.replace(/\$/g,'\\$')+')(?![\\w$])','g'),'$1<b>$2</b>');
+function nvShow(){$('nav').hidden=false}
+function nvClose(){$('nav').hidden=true}
+async function navGo(name,rev,from,mode,push=true){
+  nvShow();
+  if(push)nv.hist.push({name,rev,from,mode});
+  $('nvBack').disabled=nv.hist.length<2;
+  $('nvTitle').innerHTML=esc(name)+'<span class="rv">'+(mode==='refs'?'references':'definition')+' · '+esc(revLabel(rev))+'</span>';
+  $('nvStat').textContent='';$('nvList').innerHTML='<p class="msg">Searching…</p>';
+  let d;
+  try{const r=await fetch('/api/nav?'+new URLSearchParams({name,rev,path:from}),{cache:'no-store'});if(!r.ok)throw new Error(await r.text());d=await r.json()}
+  catch(e){$('nvList').innerHTML='<p class="msg">'+esc(String(e.message||e))+'</p>';return}
+  nv.res={...d,mode};
+  $('nvStat').textContent=d.defs.length+' def · '+d.refs.length+' refs · '+d.files+' files · '+d.ms+'ms'+(d.truncated?' (truncated)':'');
+  nvList(d,mode,name);
+  const first=mode==='def'?d.defs[0]:(d.refs[0]||d.defs[0]);
+  if(first)openLoc(first,rev,name);
+  else{$('nvFileHdr').textContent='';$('nvFile').innerHTML=''}
+}
+function nvList(d,mode,name){
+  const item=(l,i,showPath)=>'<div class="it" data-k="'+i+'"><span class="kd">'+esc(l.kind)+'</span><span class="loc">'+(showPath?esc(l.path)+':':'')+l.line+'</span><span class="tx">'+hlName(l.text.trim(),name)+'</span></div>';
+  nv.items=[];
+  let h='';
+  const defs=()=>{h+='<h4>Definitions ('+d.defs.length+')</h4>';
+    if(!d.defs.length)h+='<p class="msg">No definition found'+(d.refs.length?' — see references below':'')+'.</p>';
+    for(const l of d.defs){h+=item(l,nv.items.length,true);nv.items.push(l)}};
+  const refs=()=>{const by=new Map();for(const l of d.refs){if(!by.has(l.path))by.set(l.path,[]);by.get(l.path).push(l)}
+    h+='<h4>References ('+d.refs.length+(by.size>1?' in '+by.size+' files':'')+')</h4>';
+    if(!d.refs.length)h+='<p class="msg">No references found.</p>';
+    for(const [p,ls] of by){h+='<div class="grp">'+esc(p)+' <span>('+ls.length+')</span></div>';for(const l of ls){h+=item(l,nv.items.length,false);nv.items.push(l)}}};
+  if(mode==='refs'){refs();defs()}else{defs();refs()}
+  $('nvList').innerHTML=h;$('nvList').scrollTop=0;
+}
+$('nvList').addEventListener('click',ev=>{const it=ev.target.closest('.it');if(!it)return;const h=nv.hist[nv.hist.length-1];openLoc(nv.items[+it.dataset.k],h.rev,h.name)});
+async function fileText(rev,path){
+  const k=rev+'\0'+path;
+  if(rev&&nv.cache.has(k))return nv.cache.get(k); // revisions are immutable; working tree is always re-read
+  const r=await fetch('/api/file?'+new URLSearchParams({rev,path}),{cache:'no-store'});
+  if(!r.ok)throw new Error(await r.text());
+  const t=await r.text();if(rev)nv.cache.set(k,t);return t;
+}
+async function openLoc(loc,rev,name){
+  for(const it of $('nvList').querySelectorAll('.it.on'))it.classList.remove('on');
+  const i=nv.items?nv.items.indexOf(loc):-1;if(i>=0)$('nvList').querySelector('[data-k="'+i+'"]')?.classList.add('on');
+  $('nvFileHdr').innerHTML=esc(loc.path)+':'+loc.line+' <span class="rv">@ '+esc(revLabel(rev))+' — click to copy ref</span>';
+  $('nvFileHdr').dataset.ref=loc.path+':'+loc.line;
+  let text;
+  if(!nv.file||nv.file.rev!==rev||nv.file.path!==loc.path||!rev){
+    try{text=await fileText(rev,loc.path)}catch(e){$('nvFile').innerHTML='<p class="note">'+esc(String(e.message||e))+'</p>';nv.file=null;return}
+    const lines=text.split('\n');if(lines.length>1&&lines[lines.length-1]==='')lines.pop();
+    const lang=langOf(loc.path),hl=lang&&text.length<HL_MAX?hlLines(lines,lang):null;
+    let h='<table class="u">';
+    for(let j=0;j<lines.length;j++)h+='<tr data-l="'+(j+1)+'"><td class="n">'+(j+1)+'</td><td class="c">'+(hl?hl[j]:esc(lines[j]))+'</td></tr>';
+    $('nvFile').innerHTML=h+'</table>';
+    nv.file={rev,path:loc.path};
+  }
+  for(const r of $('nvFile').querySelectorAll('tr.tgt'))r.classList.remove('tgt');
+  const row=$('nvFile').querySelector('tr[data-l="'+loc.line+'"]');
+  if(row){row.classList.add('tgt');row.scrollIntoView({block:'center'})}
+}
+$('nvFileHdr').addEventListener('click',()=>{const r=$('nvFileHdr').dataset.ref;if(r)copyText(r).then(ok=>{const s=$('nvFileHdr').querySelector('.rv');if(s){const t=s.textContent;s.textContent=ok?' copied ✓':' copy failed';setTimeout(()=>s.textContent=t,1200)}})});
+$('nvBack').onclick=()=>{if(nv.hist.length<2)return;nv.hist.pop();const h=nv.hist[nv.hist.length-1];navGo(h.name,h.rev,h.from,h.mode,false)};
+$('nvClose').onclick=nvClose;
+function navFromEvent(ev,td,rev,path){
+  const name=wordAt(ev,td);if(!name)return;
+  ev.preventDefault();navGo(name,rev,path,ev.shiftKey?'refs':'def');
+}
+filesEl.addEventListener('click',ev=>{
+  if(!(ev.metaKey||ev.ctrlKey))return;
+  const td=ev.target.closest('td.c');if(!td)return;
+  const tr=td.parentElement,tbl=tr.closest('table'),e=tbl.closest('.body')._e;
+  const side=tbl.classList.contains('s')?(td.cellIndex===1?'o':'n'):(tr.dataset.n?'n':'o');
+  navFromEvent(ev,td,sideRev(side),side==='o'?(e.f.old||e.f.new):fpath(e.f));
+});
+$('nvFile').addEventListener('click',ev=>{
+  if(!(ev.metaKey||ev.ctrlKey)||!nv.file)return;
+  const td=ev.target.closest('td.c');if(td)navFromEvent(ev,td,nv.file.rev,nv.file.path);
+});
+const setCmd=v=>document.body.classList.toggle('cmd',v);
+addEventListener('keydown',ev=>{if(ev.key==='Meta'||ev.key==='Control')setCmd(true)});
+addEventListener('keyup',ev=>{if(ev.key==='Meta'||ev.key==='Control')setCmd(false)});
+addEventListener('blur',()=>setCmd(false));
+
 // ---- apply data ----
 function apply(d){
   const first=!D;D=d;
@@ -659,7 +793,7 @@ addEventListener('keydown',ev=>{
     case 'v':if(e){e.cb.checked=!e.cb.checked;setViewed(e,e.cb.checked);go(i)}break;
     case 'x':if(e){e.sec.classList.toggle('collapsed');go(i)}break;
     case '/':ev.preventDefault();$('filter').focus();break;
-    case 'Escape':if(sel)clearSel();break;
+    case 'Escape':if(!$('nav').hidden)nvClose();else if(sel)clearSel();break;
     case 'c':if(sel)doCopy('ref');else return;break;
     default:return;
   }

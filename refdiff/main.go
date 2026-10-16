@@ -34,7 +34,7 @@ import (
 //go:embed index.html
 var indexHTML []byte
 
-//go:embed vendor/hl.js
+//go:embed assets/hl.js
 var hlJS []byte
 
 type Hunk struct {
@@ -680,6 +680,32 @@ func serve(ln net.Listener) error {
 		ok, msg := fetchRebase(r.URL.Query().Get("onto"))
 		rw.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(rw).Encode(map[string]any{"ok": ok, "msg": msg})
+	})
+	mux.HandleFunc("/api/nav", func(rw http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		res, err := navigate(q.Get("name"), q.Get("rev"), q.Get("path"))
+		if err != nil {
+			http.Error(rw, err.Error(), 400)
+			return
+		}
+		rw.Header().Set("Content-Type", "application/json")
+		rw.Header().Set("Cache-Control", "no-store")
+		json.NewEncoder(rw).Encode(res)
+	})
+	mux.HandleFunc("/api/file", func(rw http.ResponseWriter, r *http.Request) {
+		q := r.URL.Query()
+		data, err := readAt(q.Get("rev"), q.Get("path"))
+		if err != nil {
+			http.Error(rw, err.Error(), 404)
+			return
+		}
+		if bytes.IndexByte(data[:min(len(data), 8000)], 0) >= 0 {
+			http.Error(rw, "binary file", 415)
+			return
+		}
+		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		rw.Header().Set("Cache-Control", "no-store")
+		rw.Write(data)
 	})
 	mux.HandleFunc("/api/refs", func(rw http.ResponseWriter, r *http.Request) {
 		out, _ := git("for-each-ref", "--sort=-committerdate", "--count=2000",

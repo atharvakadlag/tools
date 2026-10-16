@@ -1,0 +1,2 @@
+Tag queries copied from the official tree-sitter grammar repos (MIT licensed):
+  github.com/tree-sitter/tree-sitter-<lang>/queries/tags.scm
