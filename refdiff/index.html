@@ -77,7 +77,7 @@ table.u{min-width:100%}
 table.s{width:100%;table-layout:fixed}
 table.s col.cn{width:52px}
 td{padding:0 8px;vertical-align:top}
-td.n{color:var(--ln,var(--mut));text-align:right;user-select:none;white-space:nowrap;min-width:44px;font-size:11.5px;cursor:default}
+td.n{color:var(--ln,var(--mut));text-align:right;user-select:none;white-space:nowrap;min-width:44px;font-size:11.5px;cursor:pointer;position:relative}
 table.u td.c{width:100%}
 td.c{white-space:pre;color:var(--code,inherit)}
 body.wrap td.c,table.s td.c{white-space:pre-wrap;word-break:break-all}
@@ -124,6 +124,22 @@ tr.hh td{background:var(--hh);color:var(--hhfg);padding:2px 10px;white-space:pre
 :root[data-theme="nord"]{--bg:#2e3440;--fg:#d8dee9;--mut:#8a95ab;--bd:#3b4252;--side:#272c36;--bar:#272c36;--hh:#3b4252;--hhfg:#81a1c1;--acc:#88c0d0;--addfg:#a3be8c;--delfg:#bf616a;--empty:#323946;--upd:rgba(235,203,139,.18);--k:#81a1c1;--t:#88c0d0;--s:#a3be8c;--num:#b48ead;--cm:#616e88;--tg:#81a1c1;--ty:#8fbcbb;--addbg:rgba(163,190,140,0.09);--addn:rgba(163,190,140,0.2);--addx:rgba(163,190,140,0.32);--delbg:rgba(191,97,106,0.09);--deln:rgba(191,97,106,0.2);--delx:rgba(191,97,106,0.32);--err:rgba(191,97,106,0.12);--cls:#8fbcbb;--lit:#81a1c1;--bi:#88c0d0;--op:#81a1c1;--meta:#d08770;--attr:#8fbcbb;color-scheme:dark}
 :root[data-theme="solarized-light"]{--bg:#fdf6e3;--fg:#586e75;--mut:#93a1a1;--bd:#e4dcc4;--side:#eee8d5;--bar:#eee8d5;--hh:#e5eeea;--hhfg:#657b83;--acc:#268bd2;--addfg:#859900;--delfg:#dc322f;--empty:#f5efdc;--upd:#f6e7b0;--k:#859900;--t:#268bd2;--s:#2aa198;--num:#d33682;--cm:#93a1a1;--tg:#268bd2;--ty:#b58900;--addbg:rgba(133,153,0,0.12);--addn:rgba(133,153,0,0.22);--addx:rgba(133,153,0,0.35);--delbg:rgba(220,50,47,0.09);--deln:rgba(220,50,47,0.18);--delx:rgba(220,50,47,0.3);--err:rgba(220,50,47,0.12);--lit:#cb4b16;--meta:#cb4b16;color-scheme:light}
 :root[data-theme="solarized-dark"]{--bg:#002b36;--fg:#93a1a1;--mut:#657b83;--bd:#0d3a45;--side:#00222b;--bar:#00222b;--hh:#073642;--hhfg:#839496;--acc:#268bd2;--addfg:#859900;--delfg:#dc322f;--empty:#04313c;--upd:rgba(181,137,0,.2);--k:#859900;--t:#268bd2;--s:#2aa198;--num:#d33682;--cm:#586e75;--tg:#268bd2;--ty:#b58900;--addbg:rgba(133,153,0,0.09);--addn:rgba(133,153,0,0.2);--addx:rgba(133,153,0,0.32);--delbg:rgba(220,50,47,0.09);--deln:rgba(220,50,47,0.2);--delx:rgba(220,50,47,0.32);--err:rgba(220,50,47,0.12);--lit:#cb4b16;--meta:#cb4b16;color-scheme:dark}
+/* line selection (GitLab-style) */
+:root{--selbg:color-mix(in srgb,var(--acc) 22%,transparent)}
+table.u td.n:first-child{padding-left:24px}
+table.s td.n{padding-left:24px}
+table.u tr:not(.hh):hover>td.n:first-child::after,table.s tr:not(.hh)>td.n:not(.e):hover::after{
+  content:"";position:absolute;left:4px;top:3px;width:15px;height:14px;border-radius:3px;background:var(--acc)
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M3 3.5h10v7H7.2L4.5 13v-2.5H3z'/%3E%3C/svg%3E") center/12px no-repeat}
+table.u tr.sel>td,table.s tr.sel-o>td:nth-child(-n+2),table.s tr.sel-n>td:nth-child(n+3){background-image:linear-gradient(var(--selbg),var(--selbg))}
+table.u tr.sel>td:first-child,table.s tr.sel-o>td:first-child,table.s tr.sel-n>td:nth-child(3){box-shadow:inset 3px 0 var(--acc)}
+#pop{position:absolute;z-index:25;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:calc(100vw - 24px);padding:6px 8px;
+  background:var(--bar);border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:12px}
+#pop[hidden]{display:none}
+#pop .ref{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg);max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:4px}
+#pop .note{color:var(--mut);font-size:11px}
+#pop .btn.ok{background:var(--addfg);border-color:var(--addfg);color:#fff}
+#pop .x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:13px;padding:0 2px}
 #dd{position:fixed;z-index:30;width:min(640px,calc(100vw - 16px));max-height:min(420px,70vh);overflow:auto;padding:4px;
   background:var(--bg);border:1px solid var(--bd);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:12px}
 #dd[hidden]{display:none}
@@ -166,7 +182,7 @@ kbd{font:11px ui-monospace,Menlo,monospace;border:1px solid var(--bd);border-rad
   <nav id="side">
     <input id="filter" placeholder="Filter files  ( / )" spellcheck="false">
     <div id="list"></div>
-    <div id="help"><kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter</div>
+    <div id="help"><kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter<br>click/drag line numbers to select · <kbd>c</kbd> copy ref · <kbd>Esc</kbd> clear</div>
   </nav>
   <main id="main"><div id="msg"><button class="x" title="Dismiss">✕</button><span></span></div><div id="err"></div><div id="empty">No differences.</div><div id="files"></div></main>
 </div>
@@ -293,20 +309,20 @@ const txt=e=>e.h+(e.ne?NE:'');
 function rowsU(h,lang){
   let s='<tr class="hh"><td colspan="3">'+esc(h.h)+'</td></tr>';
   for(const op of ops(h,lang)){
-    if(op.t==='c'){s+='<tr><td class="n">'+op.o+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';continue}
-    for(const e of op.del)s+='<tr><td class="n d">'+e.n+'</td><td class="n d"></td><td class="c d">'+txt(e)+'</td></tr>';
-    for(const e of op.add)s+='<tr><td class="n a"></td><td class="n a">'+e.n+'</td><td class="c a">'+txt(e)+'</td></tr>';
+    if(op.t==='c'){s+='<tr data-o="'+op.o+'" data-n="'+op.n+'"><td class="n">'+op.o+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';continue}
+    for(const e of op.del)s+='<tr data-o="'+e.n+'"><td class="n d">'+e.n+'</td><td class="n d"></td><td class="c d">'+txt(e)+'</td></tr>';
+    for(const e of op.add)s+='<tr data-n="'+e.n+'"><td class="n a"></td><td class="n a">'+e.n+'</td><td class="c a">'+txt(e)+'</td></tr>';
   }
   return s;
 }
 function rowsS(h,lang){
   let s='<tr class="hh"><td colspan="4">'+esc(h.h)+'</td></tr>';
   for(const op of ops(h,lang)){
-    if(op.t==='c'){s+='<tr><td class="n">'+op.o+'</td><td class="c">'+op.ho+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';continue}
+    if(op.t==='c'){s+='<tr data-o="'+op.o+'" data-n="'+op.n+'"><td class="n">'+op.o+'</td><td class="c">'+op.ho+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';continue}
     const k=Math.max(op.del.length,op.add.length);
     for(let j=0;j<k;j++){
       const l=op.del[j],r=op.add[j];
-      s+='<tr>'+(l?'<td class="n d">'+l.n+'</td><td class="c d">'+txt(l)+'</td>':'<td class="n e"></td><td class="c e"></td>')
+      s+='<tr'+(l?' data-o="'+l.n+'"':'')+(r?' data-n="'+r.n+'"':'')+'>'+(l?'<td class="n d">'+l.n+'</td><td class="c d">'+txt(l)+'</td>':'<td class="n e"></td><td class="c e"></td>')
               +(r?'<td class="n a">'+r.n+'</td><td class="c a">'+txt(r)+'</td>':'<td class="n e"></td><td class="c e"></td>')+'</tr>';
     }
   }
@@ -359,7 +375,7 @@ function render(e){
     for(const h of f.hunks)s+=mode==='s'?rowsS(h,lang):rowsU(h,lang);
     s+='</table>';
   }
-  e.body.innerHTML=s;e.body.style.height='';
+  e.body.innerHTML=s;e.body.style.height='';dropStaleSel();
 }
 const io=new IntersectionObserver(ents=>{for(const x of ents)if(x.isIntersecting)render(x.target._e)},{rootMargin:'1500px 0px'});
 
@@ -408,6 +424,90 @@ function onScroll(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const i=c
   const a=listEl.children[i];if(a){a.classList.add('cur');a.scrollIntoView({block:'nearest'})}})}
 addEventListener('scroll',onScroll,{passive:true});
 
+// ---- line selection + copy references (GitLab-style) ----
+let sel=null,dragging=false;
+const pop=document.createElement('div');pop.id='pop';pop.hidden=true;document.body.appendChild(pop);
+function selRows(){
+  const lo=Math.min(sel.a.rowIndex,sel.b.rowIndex),hi=Math.max(sel.a.rowIndex,sel.b.rowIndex),out=[];
+  for(let i=lo;i<=hi;i++){const r=sel.tbl.rows[i];if(r.classList.contains('hh'))continue;if(sel.side&&!r.dataset[sel.side])continue;out.push(r)}
+  return out;
+}
+let painted=[];
+function paint(){
+  for(const r of painted)r.classList.remove('sel','sel-o','sel-n');
+  painted=sel?selRows():[];
+  const c=sel&&sel.side?'sel-'+sel.side:'sel';
+  for(const r of painted)r.classList.add(c);
+}
+function clearSel(){sel=null;dragging=false;paint();pop.hidden=true}
+function selInfo(){
+  const rows=selRows(),e=sel.tbl.closest('.body')._e,f=e.f,side=sel.side;
+  let useOld=side==='o',nums;
+  if(side)nums=rows.map(r=>+r.dataset[side]);
+  else{nums=rows.filter(r=>r.dataset.n).map(r=>+r.dataset.n);if(!nums.length){useOld=true;nums=rows.map(r=>+r.dataset.o)}}
+  const a=Math.min(...nums),b=Math.max(...nums),path=useOld?(f.old||f.new):fpath(f);
+  const range=a===b?String(a):a+'-'+b;
+  const lines=rows.map(r=>{
+    let t,td;
+    if(side){td=r.cells[side==='o'?1:3];t=td.classList.contains('d')?'-':td.classList.contains('a')?'+':' '}
+    else{td=r.cells[2];t=r.dataset.o&&r.dataset.n?' ':r.dataset.n?'+':'-'}
+    return {t,s:td.textContent.replace(/⊘ no newline$/,'')};
+  });
+  return {path,range,ref:path+':'+range,useOld,lines,lang:langOf(path)||'',n:rows.length};
+}
+function fmt(kind,i){
+  if(kind==='ref')return i.ref;
+  if(kind==='diff')return i.ref+'\n```diff\n'+i.lines.map(l=>l.t+l.s).join('\n')+'\n```';
+  const keep=i.lines.filter(l=>i.useOld?l.t!=='+':l.t!=='-');
+  return i.ref+'\n```'+i.lang+'\n'+keep.map(l=>l.s).join('\n')+'\n```';
+}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(_){
+    const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand('copy')}catch(_){}ta.remove();return ok;
+  }
+}
+function showPop(){
+  if(!sel)return;
+  const i=selInfo(),mixed=i.lines.some(l=>l.t!==' ');
+  const who=i.useOld?(D.aSha||D.a):(D.b||(D.staged?'index':'working tree'));
+  pop.innerHTML='<span class="ref" title="'+esc(i.ref)+'">'+esc(i.ref)+'</span>'+
+    '<span class="note">'+i.n+' line'+(i.n===1?'':'s')+' · '+(i.useOld?'old':'new')+' ('+esc(who)+')</span>'+
+    '<button class="btn" data-c="ref" title="c">Copy ref</button><button class="btn" data-c="code">Copy with code</button>'+
+    (mixed?'<button class="btn" data-c="diff">Copy as diff</button>':'')+'<button class="x" title="Clear (Esc)">✕</button>';
+  pop.hidden=false;
+  const rows=selRows(),last=rows[rows.length-1].getBoundingClientRect(),code=sel.tbl.getBoundingClientRect();
+  pop.style.top=(last.bottom+scrollY+4)+'px';
+  pop.style.left=Math.max(8,Math.min(code.left+scrollX+60,innerWidth-pop.offsetWidth-12))+'px';
+}
+async function doCopy(kind,btn){
+  if(!sel)return;
+  const ok=await copyText(fmt(kind,selInfo()));
+  btn=btn||pop.querySelector('[data-c="'+kind+'"]');
+  if(btn){const t=btn.textContent;btn.textContent=ok?'Copied ✓':'Copy failed';btn.classList.toggle('ok',ok);setTimeout(()=>{btn.textContent=t;btn.classList.remove('ok')},1200)}
+}
+pop.addEventListener('mousedown',ev=>ev.stopPropagation());
+pop.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.classList.contains('x'))clearSel();else doCopy(b.dataset.c,b)});
+filesEl.addEventListener('mousedown',ev=>{
+  const td=ev.target.closest('td.n');if(!td||ev.button!==0)return;
+  const tr=td.parentElement;if(tr.classList.contains('hh'))return;
+  const tbl=tr.closest('table'),side=tbl.classList.contains('s')?(td.cellIndex<2?'o':'n'):null;
+  if(side&&!tr.dataset[side])return;
+  ev.preventDefault();
+  if(ev.shiftKey&&sel&&sel.tbl===tbl&&sel.side===side)sel.b=tr;
+  else if(sel&&sel.tbl===tbl&&sel.side===side&&sel.a===tr&&sel.b===tr&&!pop.hidden){clearSel();return}
+  else sel={tbl,side,a:tr,b:tr};
+  dragging=true;pop.hidden=true;paint();
+});
+filesEl.addEventListener('mouseover',ev=>{
+  if(!dragging)return;const tr=ev.target.closest('tr');
+  if(!tr||tr.closest('table')!==sel.tbl||tr.classList.contains('hh')||(sel.side&&!tr.dataset[sel.side]))return;
+  if(tr!==sel.b){sel.b=tr;paint()}
+});
+addEventListener('mouseup',()=>{if(dragging){dragging=false;showPop()}});
+addEventListener('mousedown',ev=>{if(sel&&!pop.hidden&&!ev.target.closest('td.n')&&!ev.target.closest('#pop'))clearSel()});
+const dropStaleSel=()=>{if(sel&&!sel.tbl.isConnected)clearSel()};
+
 // ---- apply data ----
 function apply(d){
   const first=!D;D=d;
@@ -436,7 +536,7 @@ function apply(d){
   $('stats').innerHTML=d.files.length+' file'+(d.files.length===1?'':'s')+' · <span class="ad">+'+A+'</span> <span class="dl">−'+R+'</span> · '+d.ms+'ms';
   $('stats').title=d.cmd;
   $('empty').style.display=d.files.length?'none':'block';
-  sidebar();restore(a);
+  sidebar();restore(a);dropStaleSel();
 }
 
 // ---- load + live updates ----
@@ -559,6 +659,8 @@ addEventListener('keydown',ev=>{
     case 'v':if(e){e.cb.checked=!e.cb.checked;setViewed(e,e.cb.checked);go(i)}break;
     case 'x':if(e){e.sec.classList.toggle('collapsed');go(i)}break;
     case '/':ev.preventDefault();$('filter').focus();break;
+    case 'Escape':if(sel)clearSel();break;
+    case 'c':if(sel)doCopy('ref');else return;break;
     default:return;
   }
 });
