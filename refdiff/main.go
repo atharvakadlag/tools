@@ -31,6 +31,9 @@ import (
 	"time"
 )
 
+// version is set at build time: -ldflags "-X main.version=..."
+var version = "dev"
+
 //go:embed index.html
 var indexHTML []byte
 
@@ -810,6 +813,7 @@ options:
   --port <n>       listen port (default: stable per-repo port)
   --interval <ms>  poll interval for changes (default 700)
   --no-open        don't open the browser
+  --version        print version
 `
 
 func die(format string, a ...any) {
@@ -834,6 +838,9 @@ func main() {
 		switch a {
 		case "-h", "--help":
 			fmt.Print(usage)
+			return
+		case "--version":
+			fmt.Println("refdiff", version)
 			return
 		case "--":
 			q.Paths = append(q.Paths, args[i+1:]...)
