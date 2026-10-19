@@ -148,6 +148,8 @@ table.u tr.sel>td:first-child,table.s tr.sel-o>td:first-child,table.s tr.sel-n>t
 #nav .x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:14px}
 #nvTitle{font:600 13px ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #nvTitle .rv{font-weight:400;color:var(--mut);margin-left:8px;font-size:12px}
+#nvTitle .vsw{margin-left:10px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}#nvTitle .vsw .btn{font-weight:400;padding:1px 8px}
+#nvList .msg.warn{color:var(--ty)}
 #nvStat{color:var(--mut);font-size:11px;white-space:nowrap}
 #nvList{max-height:40%;overflow:auto;border-bottom:1px solid var(--bd);font-size:12px;flex:none}
 #nvList h4{margin:0;padding:5px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);background:var(--side);position:sticky;top:0;z-index:1}
@@ -162,6 +164,7 @@ table.u tr.sel>td:first-child,table.s tr.sel-o>td:first-child,table.s tr.sel-n>t
 #nvList .msg{margin:10px;color:var(--mut)}
 #nvFileHdr{flex:none;padding:5px 10px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;border-bottom:1px solid var(--bd);background:var(--bar);cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #nvFileHdr:empty{display:none}
+#nvFileHdr .ct{font-weight:400;margin-left:6px}
 #nvFileHdr .rv{color:var(--mut);font-weight:400}
 #nvFile{flex:1;overflow:auto}
 #nvFile td.n{padding-left:10px;cursor:default}#nvFile td.n::after{display:none!important}
@@ -562,26 +565,45 @@ function wordAt(ev,td){
 const hlName=(t,name)=>esc(t).replace(new RegExp('(^|[^\\w$])('+name.replace(/\$/g,'\\$')+')(?![\\w$])','g'),'$1<b>$2</b>');
 function nvShow(){$('nav').hidden=false}
 function nvClose(){$('nav').hidden=true}
-async function navGo(name,rev,from,mode,push=true){
+async function fetchNav(name,rev,from){
+  const r=await fetch('/api/nav?'+new URLSearchParams({name,rev,path:from}),{cache:'no-store'});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json();
+}
+// Searches the current code (new side) by default; if the name only exists on the old side
+// (renamed/deleted), falls back to it. The header switch flips between the two versions.
+async function navGo(name,rev,from,mode,push=true,fallback=null){
   nvShow();
+  $('nvTitle').innerHTML=esc(name)+'<span class="rv">searching…</span>';
+  $('nvStat').textContent='';$('nvList').innerHTML='<p class="msg">Searching…</p>';
+  let d,note='';
+  try{
+    d=await fetchNav(name,rev,from);
+    if(fallback!==null&&fallback!==rev&&!d.defs.length&&!d.refs.length){
+      const d2=await fetchNav(name,fallback,from);
+      if(d2.defs.length||d2.refs.length){note='“'+name+'” isn’t in '+revLabel(rev)+' — showing '+revLabel(fallback)+'.';d=d2;rev=fallback}
+    }
+  }catch(e){$('nvList').innerHTML='<p class="msg">'+esc(String(e.message||e))+'</p>';return}
   if(push)nv.hist.push({name,rev,from,mode});
   $('nvBack').disabled=nv.hist.length<2;
-  $('nvTitle').innerHTML=esc(name)+'<span class="rv">'+(mode==='refs'?'references':'definition')+' · '+esc(revLabel(rev))+'</span>';
-  $('nvStat').textContent='';$('nvList').innerHTML='<p class="msg">Searching…</p>';
-  let d;
-  try{const r=await fetch('/api/nav?'+new URLSearchParams({name,rev,path:from}),{cache:'no-store'});if(!r.ok)throw new Error(await r.text());d=await r.json()}
-  catch(e){$('nvList').innerHTML='<p class="msg">'+esc(String(e.message||e))+'</p>';return}
+  const o=sideRev('o'),n=sideRev('n');
+  const sw=o===n?'':'<span class="seg vsw">'+[o,n].map(r=>'<button class="btn'+(r===rev?' on':'')+'" data-rev="'+esc(r)+'">'+esc(revLabel(r))+'</button>').join('')+'</span>';
+  $('nvTitle').innerHTML=esc(name)+'<span class="rv">'+(mode==='refs'?'references':'definition')+'</span>'+sw;
   nv.res={...d,mode};
   $('nvStat').textContent=d.defs.length+' def · '+d.refs.length+' refs · '+d.files+' files · '+d.ms+'ms'+(d.truncated?' (truncated)':'');
-  nvList(d,mode,name);
+  nvList(d,mode,name,note);
   const first=mode==='def'?d.defs[0]:(d.refs[0]||d.defs[0]);
   if(first)openLoc(first,rev,name);
   else{$('nvFileHdr').textContent='';$('nvFile').innerHTML=''}
 }
-function nvList(d,mode,name){
+$('nvTitle').addEventListener('click',ev=>{
+  const b=ev.target.closest('button[data-rev]');if(!b||b.classList.contains('on'))return;
+  const h=nv.hist[nv.hist.length-1];if(h)navGo(h.name,b.dataset.rev,h.from,h.mode);
+});
+function nvList(d,mode,name,note){
   const item=(l,i,showPath)=>'<div class="it" data-k="'+i+'"><span class="kd">'+esc(l.kind)+'</span><span class="loc">'+(showPath?esc(l.path)+':':'')+l.line+'</span><span class="tx">'+hlName(l.text.trim(),name)+'</span></div>';
   nv.items=[];
-  let h='';
+  let h=note?'<p class="msg warn">'+esc(note)+'</p>':'';
   const defs=()=>{h+='<h4>Definitions ('+d.defs.length+')</h4>';
     if(!d.defs.length)h+='<p class="msg">No definition found'+(d.refs.length?' — see references below':'')+'.</p>';
     for(const l of d.defs){h+=item(l,nv.items.length,true);nv.items.push(l)}};
@@ -605,37 +627,56 @@ async function openLoc(loc,rev,name){
   const i=nv.items?nv.items.indexOf(loc):-1;if(i>=0)$('nvList').querySelector('[data-k="'+i+'"]')?.classList.add('on');
   $('nvFileHdr').innerHTML=esc(loc.path)+':'+loc.line+' <span class="rv">@ '+esc(revLabel(rev))+' — click to copy ref</span>';
   $('nvFileHdr').dataset.ref=loc.path+':'+loc.line;
-  let text;
   if(!nv.file||nv.file.rev!==rev||nv.file.path!==loc.path||!rev){
-    try{text=await fileText(rev,loc.path)}catch(e){$('nvFile').innerHTML='<p class="note">'+esc(String(e.message||e))+'</p>';nv.file=null;return}
-    const lines=text.split('\n');if(lines.length>1&&lines[lines.length-1]==='')lines.pop();
-    const lang=langOf(loc.path),hl=lang&&text.length<HL_MAX?hlLines(lines,lang):null;
+    let fd=null,text=null;
+    try{
+      fd=await fileDiff(loc.path);
+      if(!fd||fd.bin||!fd.hunks.length)text=await fileText(rev,loc.path);
+    }catch(e){$('nvFile').innerHTML='<p class="note">'+esc(String(e.message||e))+'</p>';nv.file=null;return}
+    const lang=langOf(loc.path);
     let h='<table class="u">';
-    for(let j=0;j<lines.length;j++)h+='<tr data-l="'+(j+1)+'"><td class="n">'+(j+1)+'</td><td class="c">'+(hl?hl[j]:esc(lines[j]))+'</td></tr>';
+    if(text===null){ // file changed on this branch: whole file with inline diff
+      for(const hk of fd.hunks)h+=rowsU(hk,lang).replace(/^<tr class="hh">.*?<\/tr>/,'');
+    }else{
+      const lines=text.split('\n');if(lines.length>1&&lines[lines.length-1]==='')lines.pop();
+      const hl=lang&&text.length<HL_MAX?hlLines(lines,lang):null;
+      for(let j=0;j<lines.length;j++)h+='<tr data-l="'+(j+1)+'"><td class="n">'+(j+1)+'</td><td class="c">'+(hl?hl[j]:esc(lines[j]))+'</td></tr>';
+    }
     $('nvFile').innerHTML=h+'</table>';
-    nv.file={rev,path:loc.path};
+    nv.file={rev,path:loc.path,diff:text===null,add:fd?fd.add:0,del:fd?fd.del:0};
   }
+  if(nv.file.diff)$('nvFileHdr').insertAdjacentHTML('beforeend',' <span class="ct"><span class="ad">+'+nv.file.add+'</span> <span class="dl">−'+nv.file.del+'</span> vs '+esc(revLabel(sideRev('o')))+'</span>');
   for(const r of $('nvFile').querySelectorAll('tr.tgt'))r.classList.remove('tgt');
-  const row=$('nvFile').querySelector('tr[data-l="'+loc.line+'"]');
+  const attr=!nv.file.diff?'l':(rev===sideRev('o')&&rev!==sideRev('n')?'o':'n');
+  const row=$('nvFile').querySelector('tr[data-'+attr+'="'+loc.line+'"]');
   if(row){row.classList.add('tgt');row.scrollIntoView({block:'center'})}
+}
+async function fileDiff(path){
+  const p=new URLSearchParams(qs);p.delete('p');p.set('path',path);
+  const r=await fetch('/api/filediff?'+p,{cache:'no-store'});
+  if(!r.ok)throw new Error(await r.text());
+  return (await r.json()).file;
 }
 $('nvFileHdr').addEventListener('click',()=>{const r=$('nvFileHdr').dataset.ref;if(r)copyText(r).then(ok=>{const s=$('nvFileHdr').querySelector('.rv');if(s){const t=s.textContent;s.textContent=ok?' copied ✓':' copy failed';setTimeout(()=>s.textContent=t,1200)}})});
 $('nvBack').onclick=()=>{if(nv.hist.length<2)return;nv.hist.pop();const h=nv.hist[nv.hist.length-1];navGo(h.name,h.rev,h.from,h.mode,false)};
 $('nvClose').onclick=nvClose;
-function navFromEvent(ev,td,rev,path){
+function navFromEvent(ev,td,rev,path,fallback=null){
   const name=wordAt(ev,td);if(!name)return;
-  ev.preventDefault();navGo(name,rev,path,ev.shiftKey?'refs':'def');
+  ev.preventDefault();navGo(name,rev,path,ev.shiftKey?'refs':'def',true,fallback);
 }
 filesEl.addEventListener('click',ev=>{
   if(!(ev.metaKey||ev.ctrlKey))return;
   const td=ev.target.closest('td.c');if(!td)return;
   const tr=td.parentElement,tbl=tr.closest('table'),e=tbl.closest('.body')._e;
   const side=tbl.classList.contains('s')?(td.cellIndex===1?'o':'n'):(tr.dataset.n?'n':'o');
-  navFromEvent(ev,td,sideRev(side),side==='o'?(e.f.old||e.f.new):fpath(e.f));
+  navFromEvent(ev,td,sideRev('n'),side==='o'?(e.f.old||e.f.new):fpath(e.f),side==='o'?sideRev('o'):null);
 });
 $('nvFile').addEventListener('click',ev=>{
   if(!(ev.metaKey||ev.ctrlKey)||!nv.file)return;
-  const td=ev.target.closest('td.c');if(td)navFromEvent(ev,td,nv.file.rev,nv.file.path);
+  const td=ev.target.closest('td.c');if(!td)return;
+  if(!nv.file.diff)return navFromEvent(ev,td,nv.file.rev,nv.file.path);
+  const del=!td.parentElement.dataset.n;
+  navFromEvent(ev,td,sideRev('n'),nv.file.path,del?sideRev('o'):null);
 });
 const setCmd=v=>document.body.classList.toggle('cmd',v);
 addEventListener('keydown',ev=>{if(ev.key==='Meta'||ev.key==='Control')setCmd(true)});

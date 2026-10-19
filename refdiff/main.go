@@ -280,8 +280,10 @@ func parse(r io.Reader) ([]*File, uint64, error) {
 	return files, all.Sum64(), sc.Err()
 }
 
-func runDiff(q Query) ([]*File, uint64, error) {
-	cmd := exec.Command("git", diffArgs(q)...)
+func runDiff(q Query) ([]*File, uint64, error) { return runDiffArgs(diffArgs(q)) }
+
+func runDiffArgs(args []string) ([]*File, uint64, error) {
+	cmd := exec.Command("git", args...)
 	cmd.Dir = optDir
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -691,6 +693,35 @@ func serve(ln net.Listener) error {
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Header().Set("Cache-Control", "no-store")
 		json.NewEncoder(rw).Encode(res)
+	})
+	// full-context diff of a single file (for the navigation viewer)
+	mux.HandleFunc("/api/filediff", func(rw http.ResponseWriter, r *http.Request) {
+		v := r.URL.Query()
+		q, err := queryFrom(v)
+		path := v.Get("path")
+		if err != nil || path == "" {
+			http.Error(rw, "bad request", 400)
+			return
+		}
+		q.Paths = []string{":(top)" + path} // path is repo-relative; git may run in a subdir
+		args := diffArgs(q)
+		for i, a := range args {
+			if strings.HasPrefix(a, "-U") {
+				args[i] = "-U1000000"
+			}
+		}
+		files, _, err := runDiffArgs(args)
+		if err != nil {
+			http.Error(rw, err.Error(), 500)
+			return
+		}
+		var f *File
+		if len(files) > 0 {
+			f = files[0]
+		}
+		rw.Header().Set("Content-Type", "application/json")
+		rw.Header().Set("Cache-Control", "no-store")
+		json.NewEncoder(rw).Encode(map[string]any{"file": f})
 	})
 	mux.HandleFunc("/api/file", func(rw http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
