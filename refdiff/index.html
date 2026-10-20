@@ -303,14 +303,18 @@ function mark(html,p,e){
   }
   return out;
 }
-// Changed region of a paired -/+ line: common prefix/suffix. Returns [p,s] or null.
+// Changed region of a paired -/+ line: common prefix/suffix. Returns {p,ae,be,at,bt} or null:
+// [p,ae)/[p,be) is the changed middle; [at,end)/[bt,end) is differing trailing whitespace, which is
+// left out of the suffix match so a stray trailing space doesn't hide the real edit.
 function range(a,b){
   if(a.length>2000||b.length>2000)return null;
-  const m=Math.min(a.length,b.length);let p=0,s=0;
+  let A=a.trimEnd().length,B=b.trimEnd().length;
+  if(a.slice(A)===b.slice(B)){A=a.length;B=b.length}
+  const m=Math.min(A,B);let p=0,s=0;
   while(p<m&&a.charCodeAt(p)===b.charCodeAt(p))p++;
-  while(s<m-p&&a.charCodeAt(a.length-1-s)===b.charCodeAt(b.length-1-s))s++;
+  while(s<m-p&&a.charCodeAt(A-1-s)===b.charCodeAt(B-1-s))s++;
   if(p+s===0||(p+s)<m*0.2)return null;
-  return [p,s];
+  return {p,ae:A-s,be:B-s,at:A,bt:B};
 }
 
 // ---- hunk -> ops ----
@@ -332,7 +336,7 @@ function ops(h,lang){
       const k=Math.min(del.length,add.length);
       if(del.length===add.length||k<=8)for(let j=0;j<k;j++){
         const r=range(del[j].s,add[j].s);
-        if(r){del[j].h=mark(del[j].h,r[0],del[j].s.length-r[1]);add[j].h=mark(add[j].h,r[0],add[j].s.length-r[1])}
+        if(r){del[j].h=mark(mark(del[j].h,r.p,r.ae),r.at,del[j].s.length);add[j].h=mark(mark(add[j].h,r.p,r.be),r.bt,add[j].s.length)}
       }
       out.push({t:'x',del,add});
     }else if(c==='\\'){i++}
