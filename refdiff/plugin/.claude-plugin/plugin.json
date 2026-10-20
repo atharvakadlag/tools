@@ -1,0 +1,9 @@
+{
+  "name": "refdiff",
+  "version": "0.1.0",
+  "description": "Live, browser-based diff of origin/develop (or any ref) against your working tree, with syntax highlighting and go-to-definition.",
+  "author": { "name": "Atharva Kadlag" },
+  "homepage": "https://github.com/atharvakadlag/tools/tree/main/refdiff",
+  "repository": "https://github.com/atharvakadlag/tools",
+  "keywords": ["diff", "git", "code-review"]
+}
