@@ -20,6 +20,16 @@ gh release download -R atharvakadlag/tools --pattern 'refdiff-*-darwin-arm64.tar
 tar -xzf /tmp/refdiff-*-darwin-arm64.tar.gz -C ~/.local/bin
 ```
 
+## Claude Code plugin
+
+The `diff-develop` skill (`plugin/skills/diff-develop`) starts a background refdiff server against `origin/develop`
+(or another base) for the current repo. On first use it downloads the release binary unless `refdiff` is on PATH.
+
+```
+/plugin marketplace add atharvakadlag/tools
+/plugin install refdiff@atharva-tools
+```
+
 ## Build
 
 ```
