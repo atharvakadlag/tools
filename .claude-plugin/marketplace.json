@@ -1,11 +1,18 @@
 {
   "name": "atharva-tools",
-  "owner": { "name": "Atharva Kadlag" },
+  "owner": {
+    "name": "Atharva Kadlag"
+  },
   "plugins": [
     {
       "name": "refdiff",
       "source": "./refdiff/plugin",
       "description": "Live browser diff of origin/develop (or any ref) against your working tree."
+    },
+    {
+      "name": "mmdview",
+      "source": "./mmdview/plugin",
+      "description": "Live-reloading Mermaid diagram viewer that Claude can draw into and check for render errors."
     }
   ]
 }

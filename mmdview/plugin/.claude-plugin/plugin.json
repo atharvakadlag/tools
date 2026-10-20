@@ -1,0 +1,9 @@
+{
+  "name": "mmdview",
+  "version": "0.1.0",
+  "description": "Render Mermaid diagrams in a live-reloading browser viewer, with render-error feedback for Claude.",
+  "author": { "name": "Atharva Kadlag" },
+  "homepage": "https://github.com/atharvakadlag/tools/tree/main/mmdview",
+  "repository": "https://github.com/atharvakadlag/tools",
+  "keywords": ["mermaid", "diagram", "visualization"]
+}

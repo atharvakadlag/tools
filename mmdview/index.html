@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>mmdview</title>
+<style>
+:root{
+  --bg:#f6f7f9;--panel:#fff;--fg:#1d2330;--dim:#6b7383;--line:#e3e6eb;--hover:#eef1f5;--sel:#e1e9fb;--selfg:#1f4fb8;
+  --accent:#2f6fec;--err:#c93a3a;--errbg:#fdeeee;--ok:#2e9b5b;--dot:#d5d9e0;--code:#f3f4f7;
+  color-scheme:light;
+}
+:root[data-theme=dark]{
+  --bg:#15171c;--panel:#1c1f26;--fg:#dde1e8;--dim:#8b93a3;--line:#2c313b;--hover:#252a33;--sel:#24324d;--selfg:#9cbcff;
+  --accent:#6b9cff;--err:#ff7b7b;--errbg:#3a2125;--ok:#5cc98a;--dot:#2b3039;--code:#181b21;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:1px solid transparent;border-radius:6px;padding:3px 8px;cursor:pointer;white-space:nowrap}
+button:hover{background:var(--hover)}
+button.on{background:var(--sel);color:var(--selfg)}
+button:disabled{opacity:.4;cursor:default;background:none}
+header{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);flex:none;min-height:42px}
+header .brand{font-weight:600;letter-spacing:.2px;margin-right:4px}
+header .title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+header .title b{color:var(--fg);font-weight:500}
+header .sep{width:1px;height:18px;background:var(--line);margin:0 2px}
+#live{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
+#live.ok{background:var(--ok)}
+#zoomPct{min-width:48px;text-align:center;color:var(--dim);font-variant-numeric:tabular-nums}
+main{flex:1;display:flex;min-height:0}
+#side{width:270px;flex:none;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#side.hide{display:none}
+#filter{margin:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;outline:none}
+#filter:focus{border-color:var(--accent)}
+#list{flex:1;overflow:auto;padding:0 6px 8px}
+.it{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;min-width:0}
+.it:hover{background:var(--hover)}
+.it.sel{background:var(--sel);color:var(--selfg)}
+.it .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .dir{color:var(--dim);font-size:11px}
+.it .tm{color:var(--dim);font-size:11px;flex:none;font-variant-numeric:tabular-nums}
+.it .st{width:6px;height:6px;border-radius:50%;flex:none;background:transparent}
+.it .st.bad{background:var(--err)}
+.it.sub{padding-left:22px;font-size:12px}
+.it.sub .nm{color:var(--dim)}
+.it.sub.sel .nm{color:inherit}
+.it.fresh .tm{color:var(--accent)}
+#stage{flex:1;position:relative;overflow:hidden;cursor:grab;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:18px 18px;touch-action:none}
+#stage.drag{cursor:grabbing}
+#canvas{position:absolute;left:0;top:0;transform-origin:0 0}
+#canvas svg{display:block;max-width:none!important}
+#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--dim);text-align:center;padding:24px}
+#empty code{background:var(--code);border:1px solid var(--line);padding:2px 6px;border-radius:4px;color:var(--fg);word-break:break-all}
+#err{position:absolute;left:12px;right:12px;bottom:12px;background:var(--errbg);color:var(--err);border:1px solid color-mix(in srgb,var(--err) 35%,transparent);border-radius:8px;padding:10px 12px;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;max-height:40%;overflow:auto;cursor:auto}
+#err .h{font:600 12px -apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px}
+#src{width:min(42%,520px);flex:none;border-left:1px solid var(--line);background:var(--panel);overflow:auto;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+#src.hide{display:none}
+#src table{border-collapse:collapse;width:100%}
+#src td{padding:0 10px;white-space:pre;vertical-align:top}
+#src td.n{color:var(--dim);text-align:right;user-select:none;width:1%;padding-left:12px;border-right:1px solid var(--line)}
+#src tr.bad td{background:var(--errbg)}
+#src tr.bad td.n{color:var(--err)}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:6px 12px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .15s;pointer-events:none}
+#toast.show{opacity:.92}
+kbd{font:11px ui-monospace,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--dim)}
+#help{position:fixed;inset:0;background:rgb(0 0 0/.35);display:flex;align-items:center;justify-content:center}
+#help[hidden]{display:none}
+#help .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;min-width:280px}
+#help table td{padding:3px 8px}
+@media (max-width:720px){#side{width:200px}#src{display:none}.wide{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <span id="live" title="disconnected"></span>
+  <span class="brand">mmdview</span>
+  <button id="bSide" title="Toggle file list (b)">☰</button>
+  <span class="title" id="title"></span>
+  <button id="bFollow" title="Jump to whichever diagram changed last (l)">Follow</button>
+  <button id="bSrc" title="Show source (s)">Source</button>
+  <span class="sep"></span>
+  <button id="bOut" title="Zoom out (-)">−</button>
+  <span id="zoomPct">100%</span>
+  <button id="bIn" title="Zoom in (+)">+</button>
+  <button id="bFit" title="Fit to screen (f)">Fit</button>
+  <button id="b100" class="wide" title="Actual size (0)">1:1</button>
+  <span class="sep"></span>
+  <button id="bCopy" class="wide" title="Copy source (c)">Copy</button>
+  <button id="bSvg" class="wide" title="Download SVG">SVG</button>
+  <button id="bPng" class="wide" title="Download PNG (2×)">PNG</button>
+  <button id="bTheme" title="Toggle theme (t)">◐</button>
+  <button id="bHelp" title="Keyboard shortcuts (?)">?</button>
+</header>
+<main>
+  <nav id="side">
+    <input id="filter" placeholder="Filter  /" spellcheck="false" autocomplete="off">
+    <div id="list"></div>
+  </nav>
+  <div id="stage">
+    <div id="canvas"></div>
+    <div id="empty" hidden></div>
+    <div id="err" hidden></div>
+  </div>
+  <aside id="src" class="hide"></aside>
+</main>
+<div id="toast"></div>
+<div id="help" hidden><div class="box"><table>
+  <tr><td><kbd>j</kbd> <kbd>k</kbd></td><td>next / previous diagram</td></tr>
+  <tr><td><kbd>f</kbd></td><td>fit to screen</td></tr>
+  <tr><td><kbd>0</kbd></td><td>actual size</td></tr>
+  <tr><td><kbd>+</kbd> <kbd>−</kbd></td><td>zoom</td></tr>
+  <tr><td><kbd>s</kbd></td><td>toggle source</td></tr>
+  <tr><td><kbd>l</kbd></td><td>toggle follow latest</td></tr>
+  <tr><td><kbd>b</kbd></td><td>toggle file list</td></tr>
+  <tr><td><kbd>c</kbd></td><td>copy source</td></tr>
+  <tr><td><kbd>t</kbd></td><td>toggle theme</td></tr>
+  <tr><td><kbd>/</kbd></td><td>filter files</td></tr>
+</table></div></div>
+<script src="/mermaid.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem('mmdview.'+k);return v==null?d:JSON.parse(v)}catch{return d}},
+  set(k,v){try{localStorage.setItem('mmdview.'+k,JSON.stringify(v))}catch{}}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const S={
+  root:'',files:[],revs:new Map(),bad:new Map(),   // path -> rev / path -> bool (any diagram failed)
+  cur:null,idx:0,file:null,                        // current path, diagram index, loaded file (with sources)
+  follow:store.get('follow',true),theme:store.get('theme',null),
+  view:{x:0,y:0,k:1,auto:true},svgSize:null,lastSvg:'',
+};
+
+// ---------- theme ----------
+const sysDark=matchMedia('(prefers-color-scheme: dark)');
+const isDark=()=>S.theme?S.theme==='dark':sysDark.matches;
+function applyTheme(){
+  document.documentElement.dataset.theme=isDark()?'dark':'light';
+  mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:isDark()?'dark':'default',fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif'});
+}
+sysDark.addEventListener('change',()=>{if(!S.theme){applyTheme();render()}});
+
+// ---------- mermaid (serialized: mermaid keeps global state) ----------
+let chain=Promise.resolve(),seq=0;
+const queue=fn=>(chain=chain.then(fn,fn));
+function errInfo(e,d){
+  let msg=(e&&(e.message||e.str))||String(e);
+  msg=msg.replace(/^Error:\s*/,'').trim();
+  let line=e&&e.hash&&e.hash.loc?e.hash.loc.first_line:null;
+  if(line==null){const m=/line (\d+)/i.exec(msg);if(m)line=+m[1]}
+  return {ok:false,error:msg,line:line!=null&&d?d.line+line-1:0,rel:line};
+}
+function cleanup(id){for(const s of ['#'+id,'#d'+id,'#i'+id])document.querySelectorAll(s).forEach(n=>{if(!$('canvas').contains(n))n.remove()})}
+async function check(d){
+  if(!d.src.trim())return {ok:false,error:'empty diagram'};
+  try{await mermaid.parse(d.src);return {ok:true}}catch(e){return errInfo(e,d)}
+}
+async function report(file,results){
+  try{await fetch('/api/report',{method:'POST',headers:{'X-Mmdview':'1','Content-Type':'application/json'},
+    body:JSON.stringify({path:file.path,rev:file.rev,results:results.map(r=>({ok:r.ok,error:r.error||'',line:r.line||0}))})})}catch{}
+}
+// Parse every diagram in a file (no DOM), record and report the result.
+async function validate(file){
+  const res=[];for(const d of file.diagrams)res.push(await check(d));
+  S.bad.set(file.path,res.some(r=>!r.ok));
+  return res;
+}
+
+// ---------- data ----------
+const api=async p=>{const r=await fetch(p,{cache:'no-store'});if(!r.ok)throw new Error(await r.text());return r.json()};
+async function loadFile(path){
+  const f=await api('/api/file?path='+encodeURIComponent(path));
+  return f;
+}
+const entries=()=>S.files.flatMap(f=>f.diagrams.map((d,i)=>({path:f.path,i})));
+
+async function refresh(){
+  let data;try{data=await api('/api/files')}catch{return}
+  S.root=data.root;
+  const first=!S.revs.size&&!S.files.length;
+  const changed=data.files.filter(f=>S.revs.get(f.path)!==f.rev);
+  S.files=data.files;
+  const prev=S.revs;S.revs=new Map(data.files.map(f=>[f.path,f.rev]));
+  if(first){
+    const h=parseHash();
+    if(h&&S.revs.has(h.path))await select(h.path,h.i,true);
+    else if(S.files.length)await select(S.files[0].path,0,true);
+    else showEmpty();
+  }else{
+    if(S.cur&&!S.revs.has(S.cur)){S.cur=null;S.file=null}
+    const latest=changed[0]; // listing is newest-first
+    if(S.follow&&latest&&latest.path!==S.cur)await select(latest.path,0,true);
+    else if(S.cur&&changed.some(f=>f.path===S.cur))await select(S.cur,S.idx,false);
+    else if(!S.cur&&S.files.length)await select(S.files[0].path,0,true);
+    else if(!S.files.length)showEmpty();
+    // validate other files that changed while we're watching, so /api/status can answer for them
+    for(const f of changed)if(f.path!==S.cur&&prev.size)checkFile(f.path);
+  }
+  drawList();
+}
+
+function checkFile(path){
+  return queue(async()=>{try{const f=await loadFile(path);report(f,await validate(f));drawList()}catch{}});
+}
+async function select(path,i,reset){
+  S.cur=path;
+  let f;try{f=await loadFile(path)}catch{return}
+  if(S.cur!==path)return;
+  const sameDiagram=S.file&&S.file.path===path&&S.idx===i;
+  S.file=f;S.idx=Math.min(i||0,f.diagrams.length-1);
+  if(reset&&!sameDiagram)S.view.auto=true;
+  history.replaceState(null,'','#'+encodeURIComponent(path)+(S.idx?'@'+S.idx:''));
+  drawList();await render();
+  queue(async()=>{if(S.file!==f)return;report(f,await validate(f));drawList()});
+}
+function parseHash(){
+  const h=decodeURIComponent(location.hash.slice(1));if(!h)return null;
+  const m=/^(.*)@(\d+)$/.exec(h);return m?{path:m[1],i:+m[2]}:{path:h,i:0};
+}
+addEventListener('hashchange',()=>{const h=parseHash();if(h&&S.revs.has(h.path)&&(h.path!==S.cur||h.i!==S.idx))select(h.path,h.i,true)});
+
+// ---------- render ----------
+const cur=()=>S.file&&S.file.diagrams[S.idx];
+function render(){
+  const d=cur(),f=S.file;
+  if(!d)return;
+  $('empty').hidden=true;
+  drawTitle();drawSrc(null);
+  return queue(async()=>{
+    if(S.file!==f||cur()!==d)return;
+    const id='mmd'+(++seq);
+    let r;
+    try{
+      if(!d.src.trim())throw new Error('empty diagram');
+      await mermaid.parse(d.src);
+      const {svg,bindFunctions}=await mermaid.render(id,d.src);
+      cleanup(id);
+      if(S.file!==f||cur()!==d)return;
+      setSvg(svg,bindFunctions);
+      r={ok:true};
+    }catch(e){cleanup(id);r=errInfo(e,d)}
+    if(S.file!==f||cur()!==d)return;
+    if(!r.ok&&S.shown!==f.path+'@'+S.idx){$('canvas').innerHTML='';S.lastSvg=''} // keep the last good render only for this diagram
+    if(r.ok)S.shown=f.path+'@'+S.idx;
+    showErr(r);drawSrc(r);
+  });
+}
+function setSvg(svg,bind){
+  const c=$('canvas');
+  c.innerHTML=svg;S.lastSvg=svg;
+  const el=c.querySelector('svg');
+  if(!el)return;
+  bind&&bind(c);
+  const vb=el.viewBox&&el.viewBox.baseVal;
+  let w=vb&&vb.width,h=vb&&vb.height;
+  if(!w||!h){const b=el.getBBox();w=b.width;h=b.height}
+  el.setAttribute('width',w);el.setAttribute('height',h);
+  el.style.maxWidth='none';
+  S.svgSize={w,h};
+  if(S.view.auto)fit(true);else applyView();
+}
+function showErr(r){
+  const e=$('err');
+  if(r.ok){e.hidden=true;return}
+  const where=S.file.diagrams.length>1||r.line>1?` (${S.file.path}${r.line?':'+r.line:''})`:'';
+  e.innerHTML=`<div class="h">${$('canvas').firstChild?'Render failed — showing last good version':'Render failed'}${esc(where)}</div>${esc(r.error)}`;
+  e.hidden=false;
+  if(!$('canvas').firstChild)S.svgSize=null;
+}
+function showEmpty(){
+  $('canvas').innerHTML='';S.svgSize=null;S.file=null;S.cur=null;
+  $('err').hidden=true;drawTitle();drawSrc(null);
+  const e=$('empty');e.hidden=false;
+  e.innerHTML=`<div>No diagrams yet.</div><div>Write a <code>.mmd</code> file (or markdown with <code>\`\`\`mermaid</code> blocks) under</div><code>${esc(S.root)}</code><div>and it will show up here.</div>`;
+}
+
+// ---------- pan / zoom ----------
+function applyView(){
+  const v=S.view;
+  $('canvas').style.transform=`translate(${v.x}px,${v.y}px) scale(${v.k})`;
+  $('zoomPct').textContent=Math.round(v.k*100)+'%';
+}
+function fit(auto){
+  if(!S.svgSize)return;
+  const st=$('stage').getBoundingClientRect(),{w,h}=S.svgSize,pad=32;
+  const k=Math.min((st.width-pad*2)/w,(st.height-pad*2)/h,2);
+  S.view={k,x:(st.width-w*k)/2,y:Math.max(pad,(st.height-h*k)/2),auto:auto!==false};
+  applyView();
+}
+function zoomAt(f,cx,cy){
+  const v=S.view,st=$('stage').getBoundingClientRect();
+  if(cx==null){cx=st.width/2;cy=st.height/2}
+  const k=Math.min(Math.max(v.k*f,.05),12);
+  v.x=cx-(cx-v.x)*(k/v.k);v.y=cy-(cy-v.y)*(k/v.k);v.k=k;v.auto=false;applyView();
+}
+const stage=$('stage');
+stage.addEventListener('wheel',ev=>{
+  ev.preventDefault();
+  const r=stage.getBoundingClientRect();
+  if(ev.ctrlKey||ev.metaKey)zoomAt(Math.exp(-ev.deltaY*0.01),ev.clientX-r.left,ev.clientY-r.top);       // pinch / ctrl+wheel
+  else if(Math.abs(ev.deltaX)<1&&ev.deltaMode===1)zoomAt(Math.exp(-ev.deltaY*0.1),ev.clientX-r.left,ev.clientY-r.top); // mouse wheel (lines)
+  else{S.view.x-=ev.deltaX;S.view.y-=ev.deltaY;S.view.auto=false;applyView()}                           // trackpad scroll pans
+},{passive:false});
+let drag=null;
+stage.addEventListener('pointerdown',ev=>{
+  if(ev.button!==0||ev.target.closest('#err,a'))return;
+  drag={x:ev.clientX-S.view.x,y:ev.clientY-S.view.y};stage.setPointerCapture(ev.pointerId);stage.classList.add('drag');
+});
+stage.addEventListener('pointermove',ev=>{if(!drag)return;S.view.x=ev.clientX-drag.x;S.view.y=ev.clientY-drag.y;S.view.auto=false;applyView()});
+stage.addEventListener('pointerup',()=>{drag=null;stage.classList.remove('drag')});
+stage.addEventListener('dblclick',ev=>{if(!ev.target.closest('#err'))fit()});
+new ResizeObserver(()=>{if(S.view.auto)fit(true)}).observe(stage);
+
+// ---------- sidebar / title / source ----------
+function ago(ms){
+  const s=Math.max(0,(Date.now()-ms)/1000);
+  return s<60?Math.floor(s)+'s':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d';
+}
+function drawList(){
+  const q=$('filter').value.trim().toLowerCase();
+  let h='';
+  for(const f of S.files){
+    if(q&&!f.path.toLowerCase().includes(q)&&!f.diagrams.some(d=>(d.title||'').toLowerCase().includes(q)))continue;
+    const slash=f.path.lastIndexOf('/'),name=f.path.slice(slash+1),dir=slash>0?f.path.slice(0,slash):'';
+    const multi=f.diagrams.length>1,sel=f.path===S.cur;
+    const fresh=Date.now()-f.mtime<60000?' fresh':'';
+    h+=`<div class="it${sel&&!multi?' sel':''}${fresh}" data-p="${esc(f.path)}" data-i="0" title="${esc(f.path)}">
+      <span class="st${S.bad.get(f.path)?' bad':''}"></span><span class="nm">${esc(name)}${dir?` <span class="dir">${esc(dir)}</span>`:''}</span><span class="tm">${ago(f.mtime)}</span></div>`;
+    if(multi)f.diagrams.forEach((d,i)=>{
+      h+=`<div class="it sub${sel&&S.idx===i?' sel':''}" data-p="${esc(f.path)}" data-i="${i}"><span class="nm">${esc(d.title||'diagram '+(i+1))}</span><span class="tm">L${d.line}</span></div>`;
+    });
+  }
+  $('list').innerHTML=h||`<div class="it"><span class="nm dir">${S.files.length?'no matches':'no diagrams'}</span></div>`;
+}
+$('list').addEventListener('click',ev=>{const it=ev.target.closest('[data-p]');if(it)select(it.dataset.p,+it.dataset.i,true)});
+$('filter').addEventListener('input',drawList);
+$('filter').addEventListener('keydown',ev=>{if(ev.key==='Escape'||ev.key==='Enter'){ev.target.blur();if(ev.key==='Enter'){const it=$('list').querySelector('[data-p]');it&&it.click()}}});
+setInterval(drawList,30000);
+function drawTitle(){
+  const f=S.file,d=cur();
+  if(!f){$('title').textContent=S.root;document.title='mmdview';return}
+  const t=d&&d.title?` — ${d.title}`:'';
+  const n=f.diagrams.length>1?` (${S.idx+1}/${f.diagrams.length})`:'';
+  $('title').innerHTML=`<b>${esc(f.path)}</b>${esc(n+t)}`;
+  document.title=f.path.split('/').pop()+' · mmdview';
+}
+function drawSrc(r){
+  const d=cur(),el=$('src');
+  if(!d){el.innerHTML='';return}
+  const bad=r&&!r.ok&&r.rel?r.rel:-1;
+  el.innerHTML='<table>'+d.src.split('\n').map((l,i)=>`<tr${i+1===bad?' class="bad"':''}><td class="n">${d.line+i}</td><td>${esc(l)||' '}</td></tr>`).join('')+'</table>';
+  const b=el.querySelector('tr.bad');if(b&&!el.classList.contains('hide'))b.scrollIntoView({block:'nearest'});
+}
+
+// ---------- actions ----------
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1400)}
+function setFollow(on){S.follow=on;store.set('follow',on);$('bFollow').classList.toggle('on',on)}
+function toggleSrc(){const s=$('src');s.classList.toggle('hide');$('bSrc').classList.toggle('on',!s.classList.contains('hide'));if(S.view.auto)fit(true)}
+function step(dir){
+  const all=entries();if(!all.length)return;
+  let k=all.findIndex(e=>e.path===S.cur&&e.i===S.idx);
+  k=(k+dir+all.length)%all.length;select(all[k].path,all[k].i,true);
+}
+function baseName(){return (S.file?S.file.path.split('/').pop().replace(/\.[^.]+$/,''):'diagram')+(S.file&&S.file.diagrams.length>1?'-'+(S.idx+1):'')}
+function svgText(){
+  const el=$('canvas').querySelector('svg');if(!el)return null;
+  const c=el.cloneNode(true);c.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  return new XMLSerializer().serializeToString(c);
+}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
+async function copySrc(){const d=cur();if(!d)return;try{await navigator.clipboard.writeText(d.src);toast('Source copied')}catch{toast('Copy failed')}}
+function saveSvg(){const t=svgText();if(!t)return toast('Nothing rendered');download(new Blob([t],{type:'image/svg+xml'}),baseName()+'.svg')}
+function savePng(){
+  const t=svgText();if(!t||!S.svgSize)return toast('Nothing rendered');
+  const img=new Image(),scale=2,{w,h}=S.svgSize;
+  img.onload=()=>{
+    const c=document.createElement('canvas');c.width=Math.ceil(w*scale);c.height=Math.ceil(h*scale);
+    const g=c.getContext('2d');g.fillStyle=getComputedStyle(document.body).backgroundColor;g.fillRect(0,0,c.width,c.height);
+    g.drawImage(img,0,0,c.width,c.height);
+    try{c.toBlob(b=>b?download(b,baseName()+'.png'):toast('PNG export failed — try SVG'),'image/png')}catch{toast('PNG export blocked by the browser — try SVG')}
+  };
+  img.onerror=()=>toast('PNG export failed — try SVG');
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(t);
+}
+function toggleTheme(){S.theme=isDark()?'light':'dark';store.set('theme',S.theme);applyTheme();render()}
+$('bFollow').onclick=()=>setFollow(!S.follow);
+$('bSrc').onclick=toggleSrc;
+$('bSide').onclick=()=>{$('side').classList.toggle('hide');if(S.view.auto)fit(true)};
+$('bIn').onclick=()=>zoomAt(1.25);$('bOut').onclick=()=>zoomAt(.8);
+$('bFit').onclick=()=>fit();
+$('b100').onclick=()=>{if(!S.svgSize)return;const st=$('stage').getBoundingClientRect();S.view={k:1,x:Math.max(16,(st.width-S.svgSize.w)/2),y:32,auto:false};applyView()};
+$('bCopy').onclick=copySrc;$('bSvg').onclick=saveSvg;$('bPng').onclick=savePng;
+$('bTheme').onclick=toggleTheme;
+$('bHelp').onclick=()=>$('help').hidden=false;$('help').onclick=()=>$('help').hidden=true;
+addEventListener('keydown',ev=>{
+  if(ev.target.closest('input,textarea')||ev.metaKey||ev.ctrlKey||ev.altKey)return;
+  const k=ev.key,act={j:()=>step(1),ArrowDown:()=>step(1),k:()=>step(-1),ArrowUp:()=>step(-1),f:()=>fit(),'0':()=>$('b100').click(),
+    '+':()=>zoomAt(1.25),'=':()=>zoomAt(1.25),'-':()=>zoomAt(.8),s:toggleSrc,l:()=>setFollow(!S.follow),b:()=>$('bSide').click(),
+    c:copySrc,t:toggleTheme,'/':()=>$('filter').focus(),'?':()=>$('help').hidden=!$('help').hidden,Escape:()=>$('help').hidden=true}[k];
+  if(act){ev.preventDefault();act()}
+});
+
+// ---------- live ----------
+function connect(){
+  const es=new EventSource('/api/events');
+  es.onopen=()=>{$('live').className='ok';$('live').title='live'};
+  es.onerror=()=>{$('live').className='';$('live').title='disconnected — retrying'};
+  es.addEventListener('boot',ev=>{if(connect.boot&&connect.boot!==ev.data)location.reload();connect.boot=ev.data});
+  es.addEventListener('v',()=>refresh());
+  es.addEventListener('open',ev=>{refresh().then(()=>select(ev.data,0,true))});
+  es.addEventListener('check',ev=>checkFile(ev.data));
+}
+applyTheme();setFollow(S.follow);connect();
+</script>
+</body>
+</html>
