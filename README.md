@@ -13,6 +13,10 @@
 
 Already added the marketplace? Run `/plugin marketplace update atharva-tools` to pick up new plugins.
 
+## Scripts
+
+- **mr-watch**: keeps a GitLab MR rebased on its target, plays manual test-stage jobs, and exits (with a macOS notification) when unit tests pass, fail, or the MR hits conflicts. Needs `glab`. Install: `ln -s "$PWD/mr-watch/mr-watch" ~/.local/bin/mr-watch`, then `mr-watch <iid|mr-url>`.
+
 ## Other
 
 - **[statusline](statusline/)**: two-row powerline status line for Claude Code with git, context and usage-pace segments.
