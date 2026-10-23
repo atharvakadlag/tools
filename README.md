@@ -12,3 +12,7 @@
 - **mmdview**: live-reloading Mermaid viewer that Claude draws into and checks for render errors. Skill: `mermaid`.
 
 Already added the marketplace? Run `/plugin marketplace update atharva-tools` to pick up new plugins.
+
+## Other
+
+- **[statusline](statusline/)**: two-row powerline status line for Claude Code with git, context and usage-pace segments.
