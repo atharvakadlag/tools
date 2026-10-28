@@ -16,6 +16,7 @@ Already added the marketplace? Run `/plugin marketplace update atharva-tools` to
 ## Scripts
 
 - **mr-watch**: keeps a GitLab MR rebased on its target, plays manual test-stage jobs, and exits (with a macOS notification) when unit tests pass, fail, or the MR hits conflicts. Needs `glab`. Install: `ln -s "$PWD/mr-watch/mr-watch" ~/.local/bin/mr-watch`, then `mr-watch <iid|mr-url>`.
+- **cc-snippets**: iTerm2 Toolbelt panel with Copy buttons (and ⌃⌥1–9 shortcuts) for the code blocks in Claude Code's latest reply in each tab. See `cc-snippets/README.md`.
 
 ## Other
 

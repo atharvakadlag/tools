@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Claude Snippets</title>
+<style>
+  :root { --bg: #fafafa; --fg: #1d1d1f; --muted: #6e6e73; --card: #fff; --border: #d9d9de; --code: #f3f3f6; --accent: #d97757; --ok: #2e9d57; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1c1e; --fg: #e8e8ea; --muted: #9a9aa0; --card: #26262a; --border: #3a3a40; --code: #18181b; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 8px; background: var(--bg); color: var(--fg); font: 12px -apple-system, system-ui, sans-serif; }
+  header { display: flex; justify-content: space-between; color: var(--muted); padding: 2px 2px 8px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
+  .card.flash { border-color: var(--ok); }
+  .bar { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-bottom: 1px solid var(--border); }
+  .num { font-weight: 600; color: var(--accent); }
+  .lang { color: var(--muted); flex: 1; }
+  button { font: inherit; padding: 2px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); cursor: pointer; }
+  button.done { color: var(--ok); border-color: var(--ok); }
+  pre { margin: 0; padding: 6px 8px; background: var(--code); font: 11px ui-monospace, Menlo, monospace; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; }
+  .empty { color: var(--muted); padding: 16px 4px; }
+</style>
+</head>
+<body>
+<header><span id="project"></span><span id="ago"></span></header>
+<div id="list"></div>
+<script>
+  let updated = null, copiedAt = 0, data = null;
+
+  function ago(t) {
+    const s = Math.round(Date.now() / 1000 - t);
+    return s < 60 ? `${s}s ago` : s < 3600 ? `${Math.round(s / 60)}m ago` : `${Math.round(s / 3600)}h ago`;
+  }
+
+  function render() {
+    const list = document.getElementById('list');
+    list.textContent = '';
+    if (!data.snippets.length) {
+      list.innerHTML = '<div class="empty">No snippets in this tab yet. They show up after Claude replies here with a code block.</div>';
+      return;
+    }
+    data.snippets.forEach((s, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.id = `s${i + 1}`;
+      card.innerHTML = '<div class="bar"><span class="num"></span><span class="lang"></span><button>Copy</button></div><pre></pre>';
+      card.querySelector('.num').textContent = `#${i + 1}`;
+      card.querySelector('.lang').textContent = s.lang || 'text';
+      card.querySelector('pre').textContent = s.code;
+      card.querySelector('button').onclick = () => fetch(`/copy?n=${i + 1}`, { method: 'POST' }).then(poll);
+      list.appendChild(card);
+    });
+  }
+
+  function flash(n) {
+    const card = document.getElementById(`s${n}`);
+    if (!card) return;
+    const btn = card.querySelector('button');
+    card.classList.add('flash'); btn.classList.add('done'); btn.textContent = 'Copied';
+    setTimeout(() => { card.classList.remove('flash'); btn.classList.remove('done'); btn.textContent = 'Copy'; }, 1200);
+  }
+
+  async function poll() {
+    try {
+      data = await (await fetch('/data')).json();
+    } catch { return; }
+    if (data.updated !== updated) { updated = data.updated; render(); }
+    document.getElementById('project').textContent = data.project || '';
+    document.getElementById('ago').textContent = data.updated ? ago(data.updated) : '';
+    if (data.copied.at > copiedAt) { copiedAt = data.copied.at; flash(data.copied.n); }
+  }
+
+  poll();
+  setInterval(poll, 1000);
+</script>
+</body>
+</html>
