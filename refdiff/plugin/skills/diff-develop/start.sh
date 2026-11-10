@@ -5,7 +5,7 @@
 #   start.sh --stop       stop the server for this repo
 set -euo pipefail
 
-version=0.1.0
+version=0.3.0
 repo=atharvakadlag/tools
 
 # Prefer refdiff on PATH; otherwise fetch the pinned release binary into a cache dir.
