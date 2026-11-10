@@ -89,6 +89,9 @@ td.e{background:var(--empty)}
 .d .x,td.d .x{background:var(--delx);border-radius:2px}
 td.a .x{background:var(--addx);border-radius:2px}
 tr.hh td{background:var(--hh);color:var(--hhfg);padding:2px 10px;white-space:pre-wrap}
+tr.hh td.ex{padding:0;text-align:center;white-space:nowrap;vertical-align:middle}
+.exb{border:0;background:none;color:var(--hhfg);cursor:pointer;font-size:13px;line-height:20px;padding:0 6px}
+.exb:hover{background:var(--acc);color:#fff}
 .ne{color:var(--delfg);font-size:10px;margin-left:6px;user-select:none}
 /* syntax tokens: base palette (k t s num cm tg ty) + optional per-theme refinements */
 :root{--k:#cf222e;--t:#8250df;--s:#0a3069;--num:#0550ae;--cm:#6e7781;--tg:#116329;--ty:#953800}
@@ -187,6 +190,95 @@ body.cmd td.c{cursor:pointer}
 #theme option{background:var(--bg);color:var(--fg)}
 kbd{font:11px ui-monospace,Menlo,monospace;border:1px solid var(--bd);border-radius:4px;padding:0 4px}
 #help{color:var(--mut);font-size:11px;padding:8px 4px;line-height:1.9}
+/* ---- refdiff 2: review layer ---- */
+.btn.ok{background:var(--addfg);border-color:var(--addfg);color:#fff}
+#brv b{display:inline-block;min-width:16px;margin-left:4px;padding:0 4px;border-radius:8px;background:var(--acc);color:#fff;font-size:11px;font-weight:600}
+#bk{color:var(--mut);font:11px ui-monospace,Menlo,monospace}
+/* sidebar: progress, commits, tree */
+#prog{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--mut);margin:0 2px 8px}
+#prog:empty{display:none}
+#prog .bar{flex:1;height:4px;border-radius:2px;background:var(--bd);overflow:hidden}
+#prog .bar i{display:block;height:100%;background:var(--addfg);transition:width .3s}
+#cms{margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+#cms[hidden]{display:none}
+#cms .sh{display:flex;gap:6px;align-items:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);padding:2px 4px 4px;cursor:pointer;user-select:none}
+#cms .sh span:last-child{font-weight:400}
+.car{display:inline-block;width:10px;font-size:9px;transition:transform .15s}
+#cms.cl .sh .car{transform:rotate(-90deg)}#cms.cl .clb{display:none}
+#cms .clb{max-height:34vh;overflow:auto}
+.ci{display:flex;gap:7px;align-items:baseline;padding:3px 6px;border-radius:6px;font-size:12.5px;cursor:pointer}
+.ci:hover{background:var(--bar)}.ci.cur{background:var(--hh)}
+.ci .h{flex:none;font:11px ui-monospace,Menlo,monospace;color:var(--acc)}
+.ci .su{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci .ag{flex:none;color:var(--mut);font-size:11px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci.spc .su{font-weight:600}
+.ci .dot{flex:none;width:7px;height:7px;border-radius:50%;align-self:center;background:var(--acc)}
+.ci.wt .dot{background:#d29922}
+#list .dr{display:flex;gap:4px;align-items:center;padding:2px 6px;font-size:12.5px;color:var(--mut);cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:6px}
+#list .dr:hover{background:var(--bar)}#list .dr.cl .car{transform:rotate(-90deg)}
+#list .nm{direction:ltr}
+#list .msg{color:var(--mut);font-size:12px;padding:6px}
+.cmc{flex:none;font-size:10.5px;color:var(--acc);font-weight:600;white-space:nowrap}
+.st.sU{color:var(--addfg);outline:1px dashed currentColor;outline-offset:-1px}
+/* commit header */
+#chead{display:none;border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:14px;background:var(--bar)}
+#chead .t{font-weight:600;font-size:15px}
+#chead .b{white-space:pre-wrap;color:var(--mut);margin-top:6px;font:12px/1.5 ui-monospace,Menlo,monospace;max-height:30vh;overflow:auto}
+#chead .m{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--mut)}
+#chead code{font:12px ui-monospace,Menlo,monospace;color:var(--acc);cursor:pointer}
+/* inline review notes */
+tr.cmr>td{padding:6px 12px 8px;background:var(--bg);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);white-space:normal;font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-right:calc(50% + 12px)}
+.cmt,.cme{position:sticky;left:12px;max-width:820px;border:1px solid var(--bd);border-left:3px solid var(--acc);border-radius:6px;background:var(--bar);padding:7px 10px}
+.cmt+.cmt,.cmt+.cme,.cme+.cmt{margin-top:6px}
+.cmh{display:flex;gap:8px;align-items:baseline;font-size:12px;color:var(--mut);min-width:0}
+.cmh b{color:var(--fg);flex:none}
+.cml{flex:none;font:11px ui-monospace,Menlo,monospace}
+.cmb{margin-top:4px;white-space:pre-wrap;word-break:break-word;color:var(--fg)}
+.cmb code,.cma code,#rvTip code{font:12px ui-monospace,Menlo,monospace;background:var(--hh);padding:0 4px;border-radius:4px}
+.cmb pre{margin:4px 0;padding:6px 8px;background:var(--bg);border:1px solid var(--bd);border-radius:6px;font:12px ui-monospace,Menlo,monospace;overflow:auto;white-space:pre}
+.cmh .sum{display:none}
+.cmt.res{border-left-color:var(--addfg);opacity:.7}.cmt.res .cmb{display:none}
+.cmt.res .cmh .sum{display:block;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lnk{border:0;background:none;color:var(--acc);cursor:pointer;font-size:12px;padding:0 2px;flex:none}
+.lnk:hover{text-decoration:underline}
+.cme textarea{display:block;width:100%;min-height:76px;margin:6px 0;padding:6px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--fg);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;resize:vertical}
+.cme textarea:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.cma{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.cma .hint{color:var(--mut);font-size:11px;margin-left:auto}
+.orph{padding:8px 12px;border-bottom:1px solid var(--bd);background:var(--side)}
+.orph .lab{font-size:11px;color:var(--mut);margin-bottom:6px}
+.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%,35%{box-shadow:0 0 0 3px var(--acc)}100%{box-shadow:0 0 0 0 transparent}}
+/* review panel */
+#rv{position:fixed;top:48px;right:0;bottom:0;width:min(500px,94vw);z-index:16;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--bd);box-shadow:-14px 0 34px rgba(0,0,0,.28)}
+#rv[hidden]{display:none}
+#rv>header{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--bd);background:var(--bar);font-weight:600;font-size:13px}
+#rv .x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:14px}
+#rvAct{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px;border-bottom:1px solid var(--bd)}
+#rvAct label{font-size:12px;color:var(--mut);display:flex;gap:4px;align-items:center;margin-left:auto;cursor:pointer}
+#rvTip{padding:8px 10px;font-size:12px;color:var(--mut);border-bottom:1px solid var(--bd);line-height:1.6}
+#rvList{flex:1;overflow:auto;padding:4px 10px 24px}
+#rvList .grp{font:600 12px ui-monospace,Menlo,monospace;margin:12px 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rvList .it{padding:6px 9px;border:1px solid var(--bd);border-left:3px solid var(--acc);border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:13px}
+#rvList .it:hover{background:var(--bar)}
+#rvList .it.res{border-left-color:var(--addfg);opacity:.6}
+#rvList .it .tx{white-space:pre-wrap;word-break:break-word;max-height:4.4em;overflow:hidden;margin-top:2px}
+#rvList .empty{color:var(--mut);text-align:center;padding:36px 14px;font-size:13px;line-height:1.6}
+/* command palette */
+#pal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.35);display:flex;justify-content:center;align-items:flex-start;padding-top:12vh}
+#pal[hidden]{display:none}
+#pal .bx{width:min(660px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--bd);border-radius:10px;box-shadow:0 20px 50px rgba(0,0,0,.45);overflow:hidden}
+#palIn{width:100%;padding:12px 14px;border:0;border-bottom:1px solid var(--bd);background:var(--bg);font-size:15px;outline:none}
+#palL{max-height:min(440px,62vh);overflow:auto;padding:4px}
+#palL>div{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px}
+#palL>div.on{background:var(--hh)}
+#palL .k{flex:none;width:52px;font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut)}
+#palL .l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#palL .l b{color:var(--acc)}
+#palL .h{flex:none;color:var(--mut);font:11px ui-monospace,Menlo,monospace}
+#palL p{margin:10px;color:var(--mut)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:50;max-width:min(640px,calc(100vw - 32px));padding:8px 14px;border-radius:8px;background:var(--fg);color:var(--bg);font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#toast[hidden]{display:none}#toast.bad{background:var(--delfg);color:#fff}
 @media (max-width:800px){#wrap{grid-template-columns:1fr}#side{display:none}#top input.ref{width:90px}#stats{display:none}}
 </style>
 </head>
@@ -201,19 +293,24 @@ kbd{font:11px ui-monospace,Menlo,monospace;border:1px solid var(--bd);border-rad
   <span id="stats"></span>
   <span class="sp"></span>
   <button class="btn" id="br" hidden>Fetch &amp; rebase</button>
+  <button class="btn" id="bu" hidden title="Include untracked files (u)">Untracked</button>
   <span class="seg"><button class="btn" id="mu">Unified</button><button class="btn" id="ms">Split</button></span>
   <button class="btn" id="bh" title="Syntax highlighting (h)">Syntax</button>
   <select class="btn" id="theme" title="Theme"><option value="">Auto</option><option value="github-light">GitHub Light</option><option value="github-dark">GitHub Dark</option><option value="one-dark">One Dark</option><option value="one-dark-flat">One Dark Flat</option><option value="gitlab-dark">GitLab Dark</option><option value="dracula">Dracula</option><option value="monokai">Monokai</option><option value="nord">Nord</option><option value="solarized-light">Solarized Light</option><option value="solarized-dark">Solarized Dark</option></select>
   <button class="btn" id="bw" title="Wrap long lines (w)">Wrap</button>
   <button class="btn" id="bc" title="Collapse all">Collapse</button>
   <button class="btn" id="be" title="Expand all">Expand</button>
+  <button class="btn" id="brv" title="Review notes (r)">Review</button>
+  <button class="btn" id="bk" title="Command palette: files, commits, notes, actions (⌘K or t)">⌘K</button>
   <span id="live" title="Live: auto-refreshes when refs or files change"><i></i><span>live</span></span>
 </div>
 <div id="wrap">
   <nav id="side">
+    <div id="cms" hidden></div>
+    <div id="prog"></div>
     <input id="filter" placeholder="Filter files  ( / )" spellcheck="false">
     <div id="list"></div>
-    <div id="help"><kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter<br><kbd>⌘</kbd>-click: definition · <kbd>⌘⇧</kbd>-click: references<br>click/drag line numbers to select · <kbd>c</kbd> copy ref · <kbd>Esc</kbd> clear</div>
+    <div id="help"><kbd>⌘K</kbd>/<kbd>t</kbd> palette · <kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>[</kbd>/<kbd>]</kbd> older/newer commit<br><kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>u</kbd> untracked · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter<br><kbd>⌘</kbd>-click: definition · <kbd>⌘⇧</kbd>-click: references<br>click/drag line numbers to select · <kbd>m</kbd> add note · <kbd>c</kbd> copy ref · <kbd>r</kbd> review notes · <kbd>Esc</kbd> clear</div>
   </nav>
   <aside id="nav" hidden>
   <header><button class="btn" id="nvBack" title="Back">←</button><span id="nvTitle"></span><span class="sp"></span><span id="nvStat"></span><button class="x" id="nvClose" title="Close (Esc)">✕</button></header>
@@ -221,8 +318,16 @@ kbd{font:11px ui-monospace,Menlo,monospace;border:1px solid var(--bd);border-rad
   <div id="nvFileHdr"></div>
   <div id="nvFile"></div>
 </aside>
-  <main id="main"><div id="msg"><button class="x" title="Dismiss">✕</button><span></span></div><div id="err"></div><div id="empty">No differences.</div><div id="files"></div></main>
+  <aside id="rv" hidden>
+    <header><span id="rvHd">Review</span><span class="sp"></span><button class="x" id="rvClose" title="Close (Esc)">✕</button></header>
+    <div id="rvAct"><button class="btn ok" id="rvCopy" title="Copy all open notes as a markdown prompt">Copy for Claude</button><button class="btn" id="rvResAll">Resolve all</button><button class="btn" id="rvClear">Delete resolved</button><label><input type="checkbox" id="rvShow"> show resolved</label></div>
+    <div id="rvTip">Notes are saved in <code>.git/refdiff/comments.json</code>. In Claude Code, run <code>refdiff comments</code> to read them; Claude can mark each one done with <code>refdiff comments --resolve &lt;id&gt;</code>, and this page updates live.</div>
+    <div id="rvList"></div>
+  </aside>
+  <main id="main"><div id="chead"></div><div id="msg"><button class="x" title="Dismiss">✕</button><span></span></div><div id="err"></div><div id="empty">No differences.</div><div id="files"></div></main>
 </div>
+<div id="pal" hidden><div class="bx"><input id="palIn" spellcheck="false" autocomplete="off" placeholder="Jump to a file, commit or note, or run an action…"><div id="palL"></div></div></div>
+<div id="toast" hidden></div>
 <script src="/hl.js"></script>
 <script>
 (()=>{
@@ -242,6 +347,8 @@ const filesEl=$('files'), listEl=$('list');
 
 const esc=s=>s.replace(/[&<>]/g,c=>c==='&'?'&amp;':c==='<'?'&lt;':'&gt;');
 const fpath=f=>f.st==='D'?f.old:f.new;
+const escA=s=>esc(String(s)).replace(/"/g,'&quot;');
+const stBadge=f=>f.u?'<span class="st sU" title="Untracked (new, not yet added to git)">U</span>':'<span class="st s'+f.st+'">'+f.st+'</span>';
 
 // ---- syntax highlighting (highlight.js, served from /hl.js) ----
 const HL=typeof hljs!=='undefined';
@@ -303,27 +410,84 @@ function mark(html,p,e){
   }
   return out;
 }
-// Changed region of a paired -/+ line: common prefix/suffix. Returns {p,ae,be,at,bt} or null:
-// [p,ae)/[p,be) is the changed middle; [at,end)/[bt,end) is differing trailing whitespace, which is
-// left out of the suffix match so a stray trailing space doesn't hide the real edit.
-function range(a,b){
+// Word-level changes between a paired -/+ line: LCS over tokens (words, runs of whitespace,
+// single punctuation). Returns {a,b} lists of [start,end) char ranges to mark, or null when the
+// lines are too different for highlighting to help (a rewrite reads better unmarked).
+const TOK=/\s+|[\p{L}\p{N}_$]+|[^\s\p{L}\p{N}_$]/gu;
+function wdiff(a,b){
   if(a.length>2000||b.length>2000)return null;
-  let A=a.trimEnd().length,B=b.trimEnd().length;
-  if(a.slice(A)===b.slice(B)){A=a.length;B=b.length}
-  const m=Math.min(A,B);let p=0,s=0;
-  while(p<m&&a.charCodeAt(p)===b.charCodeAt(p))p++;
-  while(s<m-p&&a.charCodeAt(A-1-s)===b.charCodeAt(B-1-s))s++;
-  if(p+s===0||(p+s)<m*0.2)return null;
-  return {p,ae:A-s,be:B-s,at:A,bt:B};
+  const A=a.match(TOK)||[],B=b.match(TOK)||[],n=A.length,m=B.length;
+  let p=0;while(p<n&&p<m&&A[p]===B[p])p++;
+  let s=0;while(s<n-p&&s<m-p&&A[n-1-s]===B[m-1-s])s++;
+  const N=n-p-s,M=m-p-s;if((N+1)*(M+1)>250000)return null;
+  const ka=new Uint8Array(n).fill(1),kb=new Uint8Array(m).fill(1),W=M+1;
+  for(let i=0;i<N;i++)ka[p+i]=0;for(let j=0;j<M;j++)kb[p+j]=0;
+  if(N&&M){
+    const L=new Uint16Array((N+1)*W);
+    for(let i=N-1;i>=0;i--)for(let j=M-1;j>=0;j--)L[i*W+j]=A[p+i]===B[p+j]?L[(i+1)*W+j+1]+1:Math.max(L[(i+1)*W+j],L[i*W+j+1]);
+    let i=0,j=0;
+    while(i<N&&j<M){if(A[p+i]===B[p+j]){ka[p+i]=kb[p+j]=1;i++;j++}else if(L[(i+1)*W+j]>=L[i*W+j+1])i++;else j++}
+  }
+  const ws=t=>/^\s+$/.test(t);
+  let same=0,tot=0;for(let i=0;i<n;i++)if(!ws(A[i])){tot+=A[i].length;if(ka[i])same+=A[i].length}
+  let totB=0;for(const t of B)if(!ws(t))totB+=t.length;
+  if(same<0.4*Math.min(tot,totB))return null;
+  const ranges=(T,K)=>{
+    for(let i=1;i<T.length-1;i++)if(K[i]&&ws(T[i])&&!K[i-1]&&!K[i+1])K[i]=2; // bridge single spaces between edits
+    const r=[];let pos=0;
+    T.forEach((t,i)=>{if(K[i]!==1){const l=r[r.length-1];if(l&&l[1]===pos)l[1]+=t.length;else r.push([pos,pos+t.length])}pos+=t.length});
+    return r;
+  };
+  const ra=ranges(A,ka),rb=ranges(B,kb);
+  // pairwise token swaps: narrow to the characters that differ (navMaxFiles → navMaxFileCount)
+  if(ra.length===rb.length)for(let i=0;i<ra.length;i++){
+    const x=a.slice(ra[i][0],ra[i][1]),y=b.slice(rb[i][0],rb[i][1]);let p=0,q=0;
+    while(p<x.length&&p<y.length&&x[p]===y[p])p++;
+    while(q<x.length-p&&q<y.length-p&&x[x.length-1-q]===y[y.length-1-q])q++;
+    if(p+q>=Math.max(2,Math.min(x.length,y.length)*0.3)){ra[i]=[ra[i][0]+p,ra[i][1]-q];rb[i]=[rb[i][0]+p,rb[i][1]-q]}
+  }
+  return {a:ra,b:rb};
+}
+
+// ---- whole-file highlighting ----
+// A hunk can start inside a multi-line string/comment, so highlighting its lines alone gets the
+// state backwards. Highlight the full old/new files instead and slice each hunk's lines out.
+const fullCache=new Map();
+function fullText(f,side){
+  const id=side==='o'?f.ob:f.nb;let url,k;
+  if(id){url='/api/blob?id='+id;k=id}
+  else if(side==='n'&&f.wt&&f.st!=='D'){url='/api/file?'+new URLSearchParams({rev:'',path:f.new});k='wt:'+f.k}
+  else return Promise.resolve(null);
+  if(!fullCache.has(k)){
+    if(fullCache.size>200)fullCache.clear();
+    fullCache.set(k,fetch(url,{cache:'no-store'}).then(r=>r.ok?r.text():null).catch(()=>null));
+  }
+  return fullCache.get(k);
+}
+function fullSide(f,side){
+  return fullText(f,side).then(t=>{
+    if(t==null)return null;
+    const raw=t.split('\n');if(raw.length>1&&raw[raw.length-1]==='')raw.pop();
+    return {raw,len:t.length,hl:{}};
+  });
+}
+const hlOf=(F,lang)=>lang in F.hl?F.hl[lang]:(F.hl[lang]=F.len<HL_MAX?hlLines(F.raw,lang):null);
+// Highlighted lines for one side of a hunk starting at line `start`; null if the file doesn't match.
+function slice(F,lang,start,T){
+  if(!F)return null;
+  const i=Math.max(start-1,0);
+  for(let j=0;j<T.length;j++)if(F.raw[i+j]!==T[j])return null;
+  const hl=hlOf(F,lang);return hl&&hl.slice(i,i+T.length);
 }
 
 // ---- hunk -> ops ----
 const HL_MAX=300000; // skip highlighting for huge/minified hunks
-function ops(h,lang){
+function ops(h,lang,full){
   const L=h.l,oldT=[],newT=[];let size=0;
   for(const l of L){const c=l[0];if(c==='\\')continue;size+=l.length;if(c!=='+')oldT.push(l.slice(1));if(c!=='-')newT.push(l.slice(1))}
   let OH=null,NH=null;
-  if(lang&&size<HL_MAX){OH=hlLines(oldT,lang);NH=hlLines(newT,lang)}
+  if(lang&&full){OH=slice(full.o,lang,h.os,oldT);NH=slice(full.n,lang,h.ns,newT)}
+  if(lang&&size<HL_MAX){OH=OH||hlLines(oldT,lang);NH=NH||hlLines(newT,lang)}
   let oi=0,ni=0;
   const ho=s=>OH?OH[oi++]:(oi++,esc(s)), hn=s=>NH?NH[ni++]:(ni++,esc(s));
   const out=[];let o=h.os,n=h.ns,i=0;
@@ -335,8 +499,8 @@ function ops(h,lang){
       while(i<L.length&&L[i][0]==='+'){const s=L[i].slice(1),e={n:n++,s,h:hn(s)};add.push(e);i++;if(i<L.length&&L[i][0]==='\\'){e.ne=1;i++}}
       const k=Math.min(del.length,add.length);
       if(del.length===add.length||k<=8)for(let j=0;j<k;j++){
-        const r=range(del[j].s,add[j].s);
-        if(r){del[j].h=mark(mark(del[j].h,r.p,r.ae),r.at,del[j].s.length);add[j].h=mark(mark(add[j].h,r.p,r.be),r.bt,add[j].s.length)}
+        const r=wdiff(del[j].s,add[j].s);
+        if(r){for(const [x,y] of r.a)del[j].h=mark(del[j].h,x,y);for(const [x,y] of r.b)add[j].h=mark(add[j].h,x,y)}
       }
       out.push({t:'x',del,add});
     }else if(c==='\\'){i++}
@@ -347,25 +511,65 @@ function ops(h,lang){
 const NE='<span class="ne" title="No newline at end of file">⊘ no newline</span>';
 const txt=e=>e.h+(e.ne?NE:'');
 
-function rowsU(h,lang){
-  let s='<tr class="hh"><td colspan="3">'+esc(h.h)+'</td></tr>';
-  for(const op of ops(h,lang)){
-    if(op.t==='c'){s+='<tr data-o="'+op.o+'" data-n="'+op.n+'"><td class="n">'+op.o+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';continue}
+const ctxU=op=>'<tr data-o="'+op.o+'" data-n="'+op.n+'"><td class="n">'+op.o+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';
+const ctxS=op=>'<tr data-o="'+op.o+'" data-n="'+op.n+'"><td class="n">'+op.o+'</td><td class="c">'+op.ho+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';
+function rowsU(h,lang,full,hdr){
+  let s=hdr!=null?hdr:'<tr class="hh"><td colspan="3">'+esc(h.h)+'</td></tr>';
+  for(const op of ops(h,lang,full)){
+    if(op.t==='c'){s+=ctxU(op);continue}
     for(const e of op.del)s+='<tr data-o="'+e.n+'"><td class="n d">'+e.n+'</td><td class="n d"></td><td class="c d">'+txt(e)+'</td></tr>';
     for(const e of op.add)s+='<tr data-n="'+e.n+'"><td class="n a"></td><td class="n a">'+e.n+'</td><td class="c a">'+txt(e)+'</td></tr>';
   }
   return s;
 }
-function rowsS(h,lang){
-  let s='<tr class="hh"><td colspan="4">'+esc(h.h)+'</td></tr>';
-  for(const op of ops(h,lang)){
-    if(op.t==='c'){s+='<tr data-o="'+op.o+'" data-n="'+op.n+'"><td class="n">'+op.o+'</td><td class="c">'+op.ho+'</td><td class="n">'+op.n+'</td><td class="c">'+op.hn+'</td></tr>';continue}
+function rowsS(h,lang,full,hdr){
+  let s=hdr!=null?hdr:'<tr class="hh"><td colspan="4">'+esc(h.h)+'</td></tr>';
+  for(const op of ops(h,lang,full)){
+    if(op.t==='c'){s+=ctxS(op);continue}
     const k=Math.max(op.del.length,op.add.length);
     for(let j=0;j<k;j++){
       const l=op.del[j],r=op.add[j];
       s+='<tr'+(l?' data-o="'+l.n+'"':'')+(r?' data-n="'+r.n+'"':'')+'>'+(l?'<td class="n d">'+l.n+'</td><td class="c d">'+txt(l)+'</td>':'<td class="n e"></td><td class="c e"></td>')
               +(r?'<td class="n a">'+r.n+'</td><td class="c a">'+txt(r)+'</td>':'<td class="n e"></td><td class="c e"></td>')+'</tr>';
     }
+  }
+  return s;
+}
+
+// ---- context expansion: GitHub-style ↓/↑ buttons in the gaps between (and around) hunks ----
+const EXP=20;
+// First old/new line of a hunk and the line after it.
+function span(h){
+  let oc=0,nc=0;for(const l of h.l){const c=l[0];if(c==='\\')continue;if(c!=='+')oc++;if(c!=='-')nc++}
+  const o=oc?h.os:h.os+1,n=nc?h.ns:h.ns+1;return {o,n,oe:o+oc,ne:n+nc};
+}
+// Rows for a whole file: each hunk, preceded by its gap's revealed lines and expander/header row.
+// e.exp[g]={top,bot} counts lines revealed below the previous hunk / above the next one in gap g.
+function fileRows(e,lang,full){
+  const f=e.f,H=f.hunks,sp=H.map(span),split=mode==='s',src=full&&(full.n||full.o);
+  const ctx=split?ctxS:ctxU,rows=split?rowsS:rowsU;
+  const line=(k,d)=>{ // unchanged line: old number k, new number k+d
+    const raw=full.n?src.raw[k+d-1]:src.raw[k-1],hl=lang&&hlOf(src,lang);
+    const h=hl?hl[(full.n?k+d:k)-1]:esc(raw??'');return ctx({o:k,n:k+d,ho:h,hn:h});
+  };
+  const btn=(g,d,t,tip)=>'<button class="exb" data-g="'+g+'" data-d="'+d+'" title="'+tip+'">'+t+'</button>';
+  const hdr=(i,left)=>{
+    let b='';
+    if(left<=EXP)b=btn(i,'a',i===0?'↑':i===H.length?'↓':'↕','Show '+left+' hidden line'+(left===1?'':'s'));
+    else{if(i>0)b+=btn(i,'d','↓','Show '+EXP+' more lines');if(i<H.length)b+=btn(i,'u','↑','Show '+EXP+' more lines')}
+    const t=i<H.length?esc(H[i].h):'';
+    return '<tr class="hh"><td class="ex"'+(split?'':' colspan="2"')+'>'+b+'</td><td colspan="'+(split?3:1)+'">'+t+'</td></tr>';
+  };
+  let s='';
+  for(let i=0;i<=H.length;i++){
+    const p=i?sp[i-1]:{oe:1,ne:1},d=p.ne-p.oe,a=p.oe;
+    const b=i<H.length?sp[i].o:(src?(full.n?src.raw.length-d:src.raw.length)+1:a),size=src?b-a:0;
+    const x=e.exp[i]||{top:0,bot:0},top=Math.min(x.top,size),bot=Math.min(x.bot,size-top),left=size-top-bot;
+    for(let k=a;k<a+top;k++)s+=line(k,d);
+    let tail='';for(let k=b-bot;k<b;k++)tail+=line(k,d);
+    // header: expander row while lines stay hidden; none once the gap is fully shown; else the plain @@ row
+    const head=left>0?hdr(i,left):size>0||i===H.length?'':null;
+    s+=i<H.length?rows(H[i],lang,full,head===null?null:head+tail):head+tail;
   }
   return s;
 }
@@ -380,11 +584,11 @@ function isViewed(f){return viewed[fpath(f)]===f.k}
 
 function make(f){
   const sec=document.createElement('section');sec.className='file';
-  sec.innerHTML='<header><button class="tog" title="Collapse (x)">▾</button><span class="st s'+f.st+'">'+f.st+'</span>'+
+  sec.innerHTML='<header><button class="tog" title="Collapse (x)">▾</button>'+stBadge(f)+
     '<span class="path" title="Click to copy path">'+pathHtml(f)+(f.sim&&f.st!=='M'?' <span class="arr">('+esc(f.sim)+')</span>':'')+'</span>'+
     '<span class="ct"><span class="ad">+'+f.add+'</span> <span class="dl">−'+f.del+'</span></span>'+
     '<label class="vw"><input type="checkbox"> Viewed</label></header><div class="body"></div>';
-  const e={f,sec,body:sec.lastChild,cb:sec.querySelector('input'),n:nlines(f),force:false};
+  const e={f,sec,body:sec.lastChild,cb:sec.querySelector('input'),n:nlines(f),force:false,exp:[]};
   e.body._e=e;
   sec.querySelector('.tog').onclick=()=>sec.classList.toggle('collapsed');
   sec.querySelector('.path').onclick=()=>{try{navigator.clipboard.writeText(fpath(f))}catch(_){}};
@@ -394,7 +598,7 @@ function make(f){
   return e;
 }
 function reset(e){
-  io.unobserve(e.body);
+  io.unobserve(e.body);e.rendered=false;
   e.body.innerHTML='';
   if(e.n>LARGE&&!e.force){
     e.body.innerHTML='<button class="btn big">Large diff ('+e.n+' lines) — load</button>';
@@ -407,17 +611,30 @@ function reset(e){
 }
 function render(e){
   io.unobserve(e.body);
-  const f=e.f;let s;
-  if(f.bin)s='<div class="note">Binary file changed</div>';
+  const f=e.f,lang=langOf(fpath(f));let s;
+  if(!f.bin&&f.hunks.length&&e.full===undefined){ // fetch whole files first (highlighting + expansion)
+    e.full=null;
+    Promise.all([fullSide(f,'o'),fullSide(f,'n')]).then(([o,n])=>{e.full=o||n?{o,n}:null;render(e)});
+    return;
+  }
+  const placed=f.bin||!f.hunks.length?[]:placeComments(e);
+  if(e.full){for(const p of placed)if(p.ok)reveal(e,p.side,p.end);if(draftFor(f)&&!draft.id)reveal(e,draft.side,draft.end)}
+  if(f.bin)s='<div class="note">'+(f.u?'Untracked binary or large file':'Binary file changed')+'</div>';
   else if(!f.hunks.length)s='<div class="note">'+(f.mode?'File mode changed: '+esc(f.mode):f.st==='R'?'File renamed without changes':f.st==='A'?'Empty file added':f.st==='D'?'Empty file deleted':'No content changes')+'</div>';
   else{
     s=mode==='s'?'<table class="s"><colgroup><col class="cn"><col><col class="cn"><col></colgroup>':'<table class="u">';
-    const lang=langOf(fpath(f));
-    for(const h of f.hunks)s+=mode==='s'?rowsS(h,lang):rowsU(h,lang);
+    s+=fileRows(e,lang,e.full);
     s+='</table>';
   }
-  e.body.innerHTML=s;e.body.style.height='';dropStaleSel();
+  e.body.innerHTML=s;e.body.style.height='';e.rendered=true;
+  injectComments(e,placed);dropStaleSel();
 }
+filesEl.addEventListener('click',ev=>{
+  const b=ev.target.closest('.exb');if(!b)return;
+  const e=b.closest('.body')._e,g=+b.dataset.g,x=e.exp[g]||(e.exp[g]={top:0,bot:0});
+  if(b.dataset.d==='d')x.top+=EXP;else if(b.dataset.d==='u')x.bot+=EXP;else x.top=Infinity;
+  render(e);
+});
 const io=new IntersectionObserver(ents=>{for(const x of ents)if(x.isIntersecting)render(x.target._e)},{rootMargin:'1500px 0px'});
 
 function setViewed(e,v){
@@ -438,31 +655,58 @@ function restore(a){
   window.scrollTo(0,e.sec.getBoundingClientRect().top+scrollY-a.off);
 }
 
-// ---- sidebar ----
+// ---- sidebar: file tree (single-child dirs compressed), viewed progress, note counts ----
+const closedDirs=new Set();
 function sidebar(){
-  let s='';
+  const t=$('filter').value.trim().toLowerCase();
+  const root={kids:[],m:new Map()};
   order.forEach((e,i)=>{
-    const p=fpath(e.f),j=p.lastIndexOf('/');
-    s+='<a data-i="'+i+'"'+(isViewed(e.f)?' class="vd"':'')+' title="'+esc(p)+'"><span class="st s'+e.f.st+'">'+e.f.st+'</span>'+
-       '<span class="nm"><bdi><span class="dir">'+esc(p.slice(0,j+1))+'</span><b>'+esc(p.slice(j+1))+'</b></bdi></span>'+
-       '<span class="ct"><span class="ad">+'+e.f.add+'</span> <span class="dl">−'+e.f.del+'</span></span></a>';
+    const p=fpath(e.f),hid=!!t&&!p.toLowerCase().includes(t);
+    e.sec.classList.toggle('hid',hid);if(hid)return;
+    const parts=p.split('/');let n=root,acc='';
+    for(let k=0;k<parts.length-1;k++){
+      acc+=parts[k]+'/';let c=n.m.get(parts[k]);
+      if(!c){c={name:parts[k],path:acc,kids:[],m:new Map()};n.m.set(parts[k],c);n.kids.push(c)}
+      n=c;
+    }
+    n.kids.push({i,e,name:parts[parts.length-1]});
   });
-  listEl.innerHTML=s;applyFilter();onScroll();
+  let s='';
+  const walk=(n,depth)=>{for(const k of n.kids){
+    if(k.e){
+      const f=k.e.f,nc=cmFor(f).filter(c=>!c.resolved).length;
+      s+='<a data-i="'+k.i+'"'+(isViewed(f)?' class="vd"':'')+' style="padding-left:'+(6+depth*12)+'px" title="'+escA(fpath(f))+'">'+stBadge(f)+
+         '<span class="nm">'+esc(k.name)+'</span>'+(nc?'<span class="cmc" title="'+nc+' open note'+(nc>1?'s':'')+'">● '+nc+'</span>':'')+
+         '<span class="ct"><span class="ad">+'+f.add+'</span> <span class="dl">−'+f.del+'</span></span></a>';
+      continue;
+    }
+    let d=k,name=d.name;while(d.kids.length===1&&!d.kids[0].e){d=d.kids[0];name+='/'+d.name}
+    const cl=closedDirs.has(d.path)&&!t;
+    s+='<div class="dr'+(cl?' cl':'')+'" data-d="'+escA(d.path)+'" style="padding-left:'+(4+depth*12)+'px" title="'+escA(d.path)+'"><span class="car">▾</span>'+esc(name)+'</div>';
+    if(!cl)walk(d,depth+1);
+  }};
+  walk(root,0);
+  listEl.innerHTML=s||(t&&order.length?'<p class="msg">No files match “'+esc(t)+'”.</p>':'');
+  progress();onScroll();
 }
-listEl.onclick=ev=>{const a=ev.target.closest('a');if(a)go(+a.dataset.i)};
+function progress(){
+  const n=order.length,v=order.filter(e=>isViewed(e.f)).length,c=cmOpen().length;
+  $('prog').innerHTML=n?'<span>'+v+' / '+n+' viewed</span><span class="bar"><i style="width:'+(v/n*100)+'%"></i></span>'+(c?'<span class="cmc" title="Open review notes">● '+c+'</span>':''):'';
+}
+listEl.onclick=ev=>{
+  const d=ev.target.closest('.dr');
+  if(d){const p=d.dataset.d;if(closedDirs.has(p))closedDirs.delete(p);else closedDirs.add(p);sidebar();return}
+  const a=ev.target.closest('a');if(a)go(+a.dataset.i);
+};
 function go(i){
   const e=order[i];if(!e)return;
   window.scrollTo(0,e.sec.getBoundingClientRect().top+scrollY-TOP-8);
 }
-function applyFilter(){
-  const t=$('filter').value.trim().toLowerCase();
-  [...listEl.children].forEach((a,i)=>{const h=t&&!fpath(order[i].f).toLowerCase().includes(t);a.classList.toggle('hid',h);order[i].sec.classList.toggle('hid',h)});
-}
-$('filter').oninput=applyFilter;
+$('filter').oninput=sidebar;
 let raf=0;
 function onScroll(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const i=curIndex();
   for(const a of listEl.querySelectorAll('a.cur'))a.classList.remove('cur');
-  const a=listEl.children[i];if(a){a.classList.add('cur');a.scrollIntoView({block:'nearest'})}})}
+  const a=listEl.querySelector('a[data-i="'+i+'"]');if(a){a.classList.add('cur');a.scrollIntoView({block:'nearest'})}})}
 addEventListener('scroll',onScroll,{passive:true});
 
 // ---- line selection + copy references (GitLab-style) ----
@@ -470,7 +714,7 @@ let sel=null,dragging=false;
 const pop=document.createElement('div');pop.id='pop';pop.hidden=true;document.body.appendChild(pop);
 function selRows(){
   const lo=Math.min(sel.a.rowIndex,sel.b.rowIndex),hi=Math.max(sel.a.rowIndex,sel.b.rowIndex),out=[];
-  for(let i=lo;i<=hi;i++){const r=sel.tbl.rows[i];if(r.classList.contains('hh'))continue;if(sel.side&&!r.dataset[sel.side])continue;out.push(r)}
+  for(let i=lo;i<=hi;i++){const r=sel.tbl.rows[i];if(r.classList.contains('hh')||r.classList.contains('cmr'))continue;if(sel.side&&!r.dataset[sel.side])continue;out.push(r)}
   return out;
 }
 let painted=[];
@@ -514,7 +758,7 @@ function showPop(){
   const who=i.useOld?(D.aSha||D.a):(D.b||(D.staged?'index':'working tree'));
   pop.innerHTML='<span class="ref" title="'+esc(i.ref)+'">'+esc(i.ref)+'</span>'+
     '<span class="note">'+i.n+' line'+(i.n===1?'':'s')+' · '+(i.useOld?'old':'new')+' ('+esc(who)+')</span>'+
-    '<button class="btn" data-c="ref" title="c">Copy ref</button><button class="btn" data-c="code">Copy with code</button>'+
+    '<button class="btn ok" data-c="note" title="m">Add note</button><button class="btn" data-c="ref" title="c">Copy ref</button><button class="btn" data-c="code">Copy with code</button>'+
     (mixed?'<button class="btn" data-c="diff">Copy as diff</button>':'')+'<button class="x" title="Clear (Esc)">✕</button>';
   pop.hidden=false;
   const rows=selRows(),last=rows[rows.length-1].getBoundingClientRect(),code=sel.tbl.getBoundingClientRect();
@@ -528,7 +772,7 @@ async function doCopy(kind,btn){
   if(btn){const t=btn.textContent;btn.textContent=ok?'Copied ✓':'Copy failed';btn.classList.toggle('ok',ok);setTimeout(()=>{btn.textContent=t;btn.classList.remove('ok')},1200)}
 }
 pop.addEventListener('mousedown',ev=>ev.stopPropagation());
-pop.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.classList.contains('x'))clearSel();else doCopy(b.dataset.c,b)});
+pop.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.classList.contains('x'))clearSel();else if(b.dataset.c==='note')startNote();else doCopy(b.dataset.c,b)});
 filesEl.addEventListener('mousedown',ev=>{
   const td=ev.target.closest('td.n');if(!td||ev.button!==0)return;
   const tr=td.parentElement;if(tr.classList.contains('hh'))return;
@@ -542,7 +786,7 @@ filesEl.addEventListener('mousedown',ev=>{
 });
 filesEl.addEventListener('mouseover',ev=>{
   if(!dragging)return;const tr=ev.target.closest('tr');
-  if(!tr||tr.closest('table')!==sel.tbl||tr.classList.contains('hh')||(sel.side&&!tr.dataset[sel.side]))return;
+  if(!tr||tr.closest('table')!==sel.tbl||tr.classList.contains('hh')||tr.classList.contains('cmr')||(sel.side&&!tr.dataset[sel.side]))return;
   if(tr!==sel.b){sel.b=tr;paint()}
 });
 addEventListener('mouseup',()=>{if(dragging){dragging=false;showPop()}});
@@ -567,7 +811,7 @@ function wordAt(ev,td){
   return name&&!/^[\p{N}]/u.test(name)?name:null;
 }
 const hlName=(t,name)=>esc(t).replace(new RegExp('(^|[^\\w$])('+name.replace(/\$/g,'\\$')+')(?![\\w$])','g'),'$1<b>$2</b>');
-function nvShow(){$('nav').hidden=false}
+function nvShow(){$('nav').hidden=false;$('rv').hidden=true}
 function nvClose(){$('nav').hidden=true}
 async function fetchNav(name,rev,from){
   const r=await fetch('/api/nav?'+new URLSearchParams({name,rev,path:from}),{cache:'no-store'});
@@ -687,12 +931,310 @@ addEventListener('keydown',ev=>{if(ev.key==='Meta'||ev.key==='Control')setCmd(tr
 addEventListener('keyup',ev=>{if(ev.key==='Meta'||ev.key==='Control')setCmd(false)});
 addEventListener('blur',()=>setCmd(false));
 
+// ---- review notes: stored in .git/refdiff/comments.json; `refdiff comments` prints them for Claude ----
+let CM=[],cmStamp='',draft=null,showRes=!!pref('showres',false);
+const cmOpen=()=>CM.filter(c=>!c.resolved);
+const onSide=(f,side,path)=>side==='o'?(f.st!=='A'&&path===(f.old||f.new)):(f.st!=='D'&&path===f.new);
+const cmFor=f=>CM.filter(c=>onSide(f,c.side,c.path));
+const draftFor=f=>!!draft&&onSide(f,draft.side,draft.path);
+function ago(ms){const s=(Date.now()-ms)/1000;return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':s<86400*30?Math.floor(s/86400)+'d ago':new Date(ms).toLocaleDateString()}
+const agoS=ms=>{const s=(Date.now()-ms)/1000;return s<3600?Math.max(1,Math.floor(s/60))+'m':s<86400?Math.floor(s/3600)+'h':s<86400*14?Math.floor(s/86400)+'d':s<86400*365?Math.floor(s/604800)+'w':Math.floor(s/31536000)+'y'};
+const mdLite=t=>esc(t).split('```').map((p,i)=>i%2?'<pre>'+p.replace(/^[\w-]*\n/,'')+'</pre>':p.replace(/`([^`\n]+)`/g,'<code>$1</code>')).join('');
+const locTxt=(line,end,side)=>'L'+line+(end>line?'–'+end:'')+(side==='o'?' · old':'');
+// Where a note's code is now: nearest exact match of its quoted lines to the original line; 0 = gone.
+function findCode(raw,c){
+  const n=c.code?c.code.length:0;if(!n)return c.line;
+  const at=i=>{if(i<0||i+n>raw.length)return false;for(let j=0;j<n;j++)if(raw[i+j]!==c.code[j])return false;return true};
+  for(let d=0;d<raw.length;d++){if(at(c.line-1-d))return c.line-d;if(d&&at(c.line-1+d))return c.line+d}
+  return 0;
+}
+function placeComments(e){
+  return cmFor(e.f).filter(c=>showRes||!c.resolved||(draft&&draft.id===c.id)).map(c=>{
+    const F=e.full&&(c.side==='o'?e.full.o:e.full.n),l=F?findCode(F.raw,c):c.line;
+    return {c,side:c.side,line:l,end:l?l+(c.end-c.line):0,ok:l>0};
+  });
+}
+// Expand the collapsed gap (if any) that hides line L of `side`, so a note there has a row to sit under.
+function reveal(e,side,L){
+  const H=e.f.hunks,sp=H.map(span),full=e.full,src=full&&(full.n||full.o);if(!src||L<=0)return;
+  for(let i=0;i<=H.length;i++){
+    const p=i?sp[i-1]:{oe:1,ne:1},d=p.ne-p.oe,a=p.oe;
+    const b=i<H.length?sp[i].o:(full.n?src.raw.length-d:src.raw.length)+1,k=side==='n'?L-d:L;
+    if(k>=a&&k<b){const x=e.exp[i]||(e.exp[i]={top:0,bot:0});if(k-a<b-k)x.top=Math.max(x.top,k-a+3);else x.bot=Math.max(x.bot,b-k+2);return}
+    if(i<H.length&&(side==='n'?L<sp[i].ne:L<sp[i].oe))return; // inside hunk i
+  }
+}
+function cardHtml(c,p){
+  return '<div class="cmt'+(c.resolved?' res':'')+'" data-cid="'+c.id+'"><div class="cmh"><b>'+(c.resolved?'✓ Resolved':'Note')+'</b>'+
+    '<span class="cml">'+(p.ok?locTxt(p.line,p.end,c.side):'outdated · was '+locTxt(c.line,c.end,c.side))+'</span><span class="sum">'+esc(c.text.split('\n')[0])+'</span>'+
+    '<span class="ag" title="'+escA(new Date(c.updated||c.created).toLocaleString())+'">'+ago(c.updated||c.created)+'</span><span class="sp"></span>'+
+    '<button class="lnk" data-a="edit">Edit</button><button class="lnk" data-a="'+(c.resolved?'reopen':'resolve')+'">'+(c.resolved?'Reopen':'Resolve')+'</button><button class="lnk" data-a="del">Delete</button></div>'+
+    '<div class="cmb">'+mdLite(c.text)+'</div></div>';
+}
+function editorHtml(line,end){
+  return '<div class="cme"><div class="cmh"><b>'+(draft.id?'Edit note':'New review note')+'</b><span class="cml">'+locTxt(line,end,draft.side)+'</span></div>'+
+    '<textarea placeholder="What should change here? `code` and ``` blocks work.">'+esc(draft.text||'')+'</textarea>'+
+    '<div class="cma"><button class="btn ok" data-a="save">'+(draft.id?'Save':'Add note')+'</button><button class="btn" data-a="cancel">Cancel</button>'+
+    '<span class="hint"><kbd>⌘</kbd><kbd>↵</kbd> save · <kbd>Esc</kbd> cancel</span></div></div>';
+}
+function injectComments(e,placed){
+  const tbl=e.body.querySelector('table'),orph=[];
+  const put=(side,l,html)=>{
+    if(!tbl||l<=0)return false;
+    const rs=tbl.querySelectorAll('tr[data-'+side+'="'+l+'"]');let r=rs[rs.length-1];if(!r)return false;
+    while(r.nextElementSibling&&r.nextElementSibling.classList.contains('cmr'))r=r.nextElementSibling;
+    r.insertAdjacentHTML('afterend','<tr class="cmr '+side+'"><td colspan="'+(tbl.classList.contains('s')?4:3)+'">'+html+'</td></tr>');return true;
+  };
+  for(const p of placed){
+    const h=draft&&draft.id===p.c.id?editorHtml(p.ok?p.line:p.c.line,p.ok?p.end:p.c.end):cardHtml(p.c,p);
+    if(!(p.ok&&put(p.side,p.end,h)))orph.push(h);
+  }
+  if(draftFor(e.f)&&!draft.id){const h=editorHtml(draft.line,draft.end);if(!put(draft.side,draft.end,h))orph.push(h)}
+  if(orph.length)e.body.insertAdjacentHTML('afterbegin','<div class="orph"><div class="lab">Notes whose code changed or isn’t shown in this diff</div>'+orph.join('')+'</div>');
+  const ta=e.body.querySelector('.cme textarea');
+  if(ta&&draft&&draft.focus){draft.focus=false;ta.focus({preventScroll:true});ta.setSelectionRange(ta.value.length,ta.value.length);
+    const r=ta.getBoundingClientRect();if(r.bottom>innerHeight-20||r.top<TOP+40)ta.scrollIntoView({block:'center'})}
+}
+const rerender=paths=>{for(const e of order)if(e.rendered&&(paths.has(e.f.new)||paths.has(e.f.old)))render(e)};
+function startNote(){
+  if(!sel)return;
+  const i=selInfo(),e=sel.tbl.closest('.body')._e,side=i.useOld?'o':'n',[a,b]=i.range.split('-').map(Number);
+  const code=i.lines.filter(l=>i.useOld?l.t!=='+':l.t!=='-').map(l=>l.s);
+  const prev=draft&&draft.path;
+  draft={id:'',path:i.path,side,line:a,end:b||a,code,text:'',rev:sideRev(side),focus:true};
+  clearSel();if(prev)rerender(new Set([prev]));render(e);
+}
+async function saveDraft(){
+  if(!draft)return;const text=(draft.text||'').trim();if(!text){cancelDraft();return}
+  const body={id:draft.id||'',path:draft.path,side:draft.side,line:draft.line,end:draft.end,rev:draft.rev||'',code:draft.id?[]:draft.code,text,resolved:!!draft.resolved};
+  try{
+    const r=await fetch('/api/comments',{method:'POST',headers:{'X-Refdiff':'1','Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(await r.text());
+    const p=draft.path;draft=null;await loadComments();rerender(new Set([p]));
+    if(!body.id)toast(true,'Note added — '+cmOpen().length+' open. Copy them for Claude from Review (r).');
+  }catch(err){toast(false,'Could not save note: '+(err.message||err))}
+}
+function cancelDraft(){if(!draft)return;const p=draft.path;draft=null;rerender(new Set([p]))}
+async function cmDo(op,ids){
+  const p=new URLSearchParams({op});for(const i of ids||[])p.append('id',i);
+  try{const r=await fetch('/api/comments/do?'+p,{method:'POST',headers:{'X-Refdiff':'1'}});if(!r.ok)throw new Error(await r.text())}
+  catch(err){toast(false,String(err.message||err))}
+  await loadComments();
+}
+async function loadComments(){
+  let j;try{const r=await fetch('/api/comments',{cache:'no-store'});if(!r.ok)return;j=await r.json()}catch(_){return}
+  const old=CM;CM=j.comments||[];cmStamp=j.stamp;
+  const was=new Map(old.map(c=>[c.id,JSON.stringify(c)])),ids=new Set(CM.map(c=>c.id)),paths=new Set();
+  for(const c of CM)if(was.get(c.id)!==JSON.stringify(c))paths.add(c.path);
+  for(const c of old)if(!ids.has(c.id))paths.add(c.path);
+  if(draft&&draft.id&&!ids.has(draft.id))draft=null;
+  if(paths.size)rerender(paths);
+  sidebar();cmCount();if(!$('rv').hidden)rvRender();
+}
+function cmCount(){const n=cmOpen().length;$('brv').innerHTML='Review'+(n?'<b>'+n+'</b>':'')}
+filesEl.addEventListener('click',ev=>{
+  const b=ev.target.closest('.cmt [data-a],.cme [data-a]');if(!b)return;
+  const a=b.dataset.a;if(a==='save')return saveDraft();if(a==='cancel')return cancelDraft();
+  const card=b.closest('.cmt'),c=card&&CM.find(x=>x.id===card.dataset.cid);if(!c)return;
+  if(a==='edit'){const prev=draft&&draft.path;draft={...c,focus:true};if(prev)rerender(new Set([prev]));rerender(new Set([c.path]))}
+  else if(a==='del'){if(confirm('Delete this note?'))cmDo('delete',[c.id])}
+  else cmDo(a,[c.id]);
+});
+filesEl.addEventListener('input',ev=>{if(draft&&ev.target.matches('.cme textarea'))draft.text=ev.target.value});
+filesEl.addEventListener('keydown',ev=>{
+  if(!ev.target.matches('.cme textarea'))return;
+  if(ev.key==='Enter'&&(ev.metaKey||ev.ctrlKey)){ev.preventDefault();saveDraft()}
+  else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();cancelDraft()}
+});
+let toastT=0;
+function toast(ok,t){const el=$('toast');clearTimeout(toastT);el.textContent=t;el.classList.toggle('bad',!ok);el.hidden=false;toastT=setTimeout(()=>el.hidden=true,ok?3500:7000)}
+
+// ---- review panel ----
+function rvToggle(v){
+  const el=$('rv');el.hidden=v===undefined?!el.hidden:!v;
+  if(!el.hidden){nvClose();rvRender()}
+}
+function rvRender(){
+  const open=cmOpen().length,res=CM.length-open,list=CM.filter(c=>showRes||!c.resolved);
+  $('rvHd').textContent='Review notes · '+open+' open'+(res?' · '+res+' resolved':'');
+  $('rvShow').checked=showRes;$('rvCopy').disabled=!open;$('rvResAll').disabled=!open;$('rvClear').disabled=!res;
+  if(!list.length){$('rvList').innerHTML='<div class="empty">'+(CM.length?'No open notes — all resolved.':'No notes yet.')+'<br><br>Click or drag line numbers to select code, then press <kbd>m</kbd> (or “Add note”).<br>Notes stick to the code they quote, even as the file changes.</div>';return}
+  const by=new Map();for(const c of list){if(!by.has(c.path))by.set(c.path,[]);by.get(c.path).push(c)}
+  let h='';
+  for(const [p,cs] of by){
+    const inDiff=order.some(e=>onSide(e.f,cs[0].side,p));
+    h+='<div class="grp" title="'+escA(p)+'">'+esc(p)+(inDiff?'':' <span style="color:var(--mut);font-weight:400">(not in this diff)</span>')+'</div>';
+    for(const c of cs)h+='<div class="it'+(c.resolved?' res':'')+'" data-cid="'+c.id+'"><div class="cmh"><span class="cml">'+locTxt(c.line,c.end,c.side)+'</span><span class="sp"></span><span>'+(c.resolved?'✓ resolved · ':'')+ago(c.updated||c.created)+'</span></div><div class="tx">'+esc(c.text)+'</div></div>';
+  }
+  $('rvList').innerHTML=h;
+}
+$('rvList').addEventListener('click',ev=>{const it=ev.target.closest('.it');if(it){const c=CM.find(x=>x.id===it.dataset.cid);if(c)jumpTo(c)}});
+$('rvClose').onclick=()=>rvToggle(false);
+$('brv').onclick=()=>rvToggle();
+$('rvShow').onchange=ev=>{showRes=ev.target.checked;setPref('showres',showRes);rvRender();rerender(new Set(CM.map(c=>c.path)))};
+$('rvCopy').onclick=copyReview;
+$('rvResAll').onclick=()=>{if(confirm('Mark all '+cmOpen().length+' open notes resolved?'))cmDo('resolve',['all'])};
+$('rvClear').onclick=()=>{if(confirm('Delete all resolved notes?'))cmDo('clear')};
+async function copyReview(){
+  if(!cmOpen().length){toast(false,'No open notes to copy.');return}
+  try{const t=await (await fetch('/api/comments/prompt',{cache:'no-store'})).text();const ok=await copyText(t);
+    toast(ok,ok?'Copied '+cmOpen().length+' open note'+(cmOpen().length===1?'':'s')+' as a prompt — paste into Claude Code.':'Copy failed')}
+  catch(err){toast(false,String(err.message||err))}
+}
+function jumpTo(c){
+  const e=order.find(e=>onSide(e.f,c.side,c.path));
+  if(!e){toast(false,c.path+' isn’t part of this diff.');return}
+  if(c.resolved&&!showRes){showRes=true;setPref('showres',true);if(!$('rv').hidden)rvRender()}
+  e.sec.classList.remove('collapsed','hid');e.force=true;render(e);
+  let n=0;(function look(){
+    const el=e.body.querySelector('[data-cid="'+c.id+'"]');
+    if(el){el.scrollIntoView({block:'center'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}
+    else if(n++<80)setTimeout(look,50);
+  })();
+}
+
+// ---- commits: timeline of the compared range; view one commit, a range (shift-click), or uncommitted ----
+const BASE=qs.has('from')?new URLSearchParams(qs.get('from')):new URLSearchParams(qs);
+const curC=qs.get('c'),curC0=qs.get('c0');
+const baseWT=!BASE.get('b')&&!(BASE.get('a')||'').includes('..')&&BASE.get('staged')!=='1';
+let COMMITS=[],CRECENT=false;
+async function loadCommits(){
+  try{const r=await fetch('/api/commits?'+BASE,{cache:'no-store'});if(!r.ok)return;const j=await r.json();COMMITS=j.commits||[];CRECENT=!!j.recent}catch(_){return}
+  renderCommits();commitHead();
+}
+function viewCommits(newer,older){
+  const p=new URLSearchParams({a:older.parent,b:newer.sha,from:BASE.toString(),c:newer.sha});
+  if(older!==newer)p.set('c0',older.sha);
+  location.search=p.toString();
+}
+function viewBase(){location.search=BASE.toString()}
+function viewUncommitted(){
+  const p=new URLSearchParams({a:'HEAD'});if(BASE.get('u'))p.set('u',BASE.get('u'));
+  p.set('from',BASE.toString());p.set('c','wt');location.search=p.toString();
+}
+const cIdx=()=>{const i1=COMMITS.findIndex(c=>c.sha===curC);return [i1,curC0?COMMITS.findIndex(c=>c.sha===curC0):i1]};
+function renderCommits(){
+  const el=$('cms');
+  if(!COMMITS.length&&!qs.has('from')){el.hidden=true;return}
+  el.hidden=false;el.classList.toggle('cl',!!pref('cmcl',false));
+  const [i1,i0]=cIdx(),lo=Math.min(i1,i0),hi=Math.max(i1,i0);
+  const baseLbl=(BASE.get('a')||'HEAD')+' → '+(BASE.get('b')||(BASE.get('staged')==='1'?'index':'working tree'));
+  let h='<div class="sh"><span class="car">▾</span>'+(CRECENT?'Recent commits':'Commits')+'<span>'+COMMITS.length+'</span></div><div class="clb">';
+  h+='<div class="ci all spc'+(qs.has('from')?'':' cur')+'" data-x="all" title="'+escA(baseLbl)+'"><span class="dot"></span><span class="su">All changes</span><span class="ag">'+esc(baseLbl)+'</span></div>';
+  if(baseWT&&!CRECENT)h+='<div class="ci wt spc'+(curC==='wt'?' cur':'')+'" data-x="wt" title="HEAD → working tree"><span class="dot"></span><span class="su">Uncommitted changes</span><span class="ag">HEAD → working tree</span></div>';
+  COMMITS.forEach((c,i)=>{
+    h+='<div class="ci'+(i1>=0&&i>=lo&&i<=hi?' cur':'')+'" data-i="'+i+'" title="'+escA(c.subject+'\n'+c.author+' · '+new Date(c.at*1000).toLocaleString()+'\n'+c.files+' file'+(c.files===1?'':'s')+' · +'+c.add+' −'+c.del+'\n\nShift-click to select a range')+'">'+
+       '<span class="h">'+c.short+'</span><span class="su">'+(c.merge?'⑂ ':'')+esc(c.subject)+'</span><span class="ag">'+agoS(c.at*1000)+'</span></div>';
+  });
+  el.innerHTML=h+'</div>';
+  const cur=el.querySelector('.ci.cur:not(.all)');if(cur)cur.scrollIntoView({block:'nearest'});
+}
+$('cms').addEventListener('click',ev=>{
+  if(ev.target.closest('.sh')){const c=!$('cms').classList.contains('cl');$('cms').classList.toggle('cl',c);setPref('cmcl',c);return}
+  const a=ev.target.closest('.ci');if(!a)return;
+  if(a.dataset.x==='all')return viewBase();
+  if(a.dataset.x==='wt')return viewUncommitted();
+  const i=+a.dataset.i,[j]=cIdx();
+  if(ev.shiftKey&&j>=0&&j!==i)return viewCommits(COMMITS[Math.min(i,j)],COMMITS[Math.max(i,j)]);
+  viewCommits(COMMITS[i],COMMITS[i]);
+});
+function commitHead(){
+  const el=$('chead');if(!qs.has('from')){el.style.display='none';return}
+  const [i1,i0]=cIdx();let h;
+  if(curC==='wt')h='<div class="t">Uncommitted changes</div><div class="m"><span>HEAD → working tree</span>';
+  else if(i1<0)h='<div class="t">'+esc(curC||'')+'</div><div class="m">';
+  else if(i0===i1){const c=COMMITS[i1];
+    h='<div class="t">'+esc(c.subject)+'</div>'+(c.body?'<div class="b">'+esc(c.body)+'</div>':'')+
+      '<div class="m"><span>'+esc(c.author)+'</span><span>'+new Date(c.at*1000).toLocaleString()+'</span><code data-copy="'+c.sha+'" title="Copy full sha">'+c.short+'</code><span>commit '+(COMMITS.length-i1)+' of '+COMMITS.length+'</span>';
+  }else{const cs=COMMITS.slice(Math.min(i0,i1),Math.max(i0,i1)+1);
+    h='<div class="t">'+cs.length+' commits</div><div class="b">'+cs.map(c=>c.short+'  '+esc(c.subject)).join('\n')+'</div><div class="m">';
+  }
+  h+='<span class="sp"></span><button class="btn" data-n="older" title="Older commit ([)">← Older</button><button class="btn" data-n="newer" title="Newer commit (])">Newer →</button><button class="btn" data-n="all">All changes</button></div>';
+  el.innerHTML=h;el.style.display='block';
+}
+$('chead').addEventListener('click',ev=>{
+  const c=ev.target.closest('[data-copy]');if(c){copyText(c.dataset.copy).then(ok=>toast(ok,ok?'Copied '+c.dataset.copy:'Copy failed'));return}
+  const b=ev.target.closest('[data-n]');if(!b)return;
+  if(b.dataset.n==='all')viewBase();else stepCommit(b.dataset.n==='older'?1:-1);
+});
+// dir: +1 older, -1 newer
+function stepCommit(dir){
+  if(!COMMITS.length)return;
+  if(curC==='wt'){if(dir>0)viewCommits(COMMITS[0],COMMITS[0]);return}
+  const [i1,i0]=cIdx();
+  if(i1<0){if(dir>0)viewCommits(COMMITS[0],COMMITS[0]);else if(baseWT&&!CRECENT)viewUncommitted();return}
+  const i=dir>0?Math.max(i1,i0)+1:Math.min(i1,i0)-1;
+  if(i>=0&&i<COMMITS.length)viewCommits(COMMITS[i],COMMITS[i]);
+  else if(i<0&&baseWT&&!CRECENT)viewUncommitted();
+  else toast(false,dir>0?'Oldest commit in range.':'Newest commit.');
+}
+function setUntracked(v){const p=new URLSearchParams(qs);if(v)p.set('u','1');else p.delete('u');location.search=p.toString()}
+$('bu').onclick=()=>D&&setUntracked(!D.untracked);
+
+// ---- command palette (⌘K / t): files, commits, notes, actions ----
+const PAL=$('pal');let palItems=[],palAct=0;
+function fz(q,s){ // fuzzy subsequence score, -1 if no match; rewards runs and word starts
+  s=s.toLowerCase();let i=0,score=0,last=-2;
+  for(let k=0;k<s.length&&i<q.length;k++)if(s[k]===q[i]){score+=k===last+1?3:1;if(k===0||'/._- '.includes(s[k-1]))score+=2;last=k;i++}
+  return i<q.length?-1:score-s.length*0.01;
+}
+function fzHl(s,q){
+  if(!q)return esc(s);let i=0,out='';
+  for(const ch of s){if(i<q.length&&ch.toLowerCase()===q[i]){out+='<b>'+esc(ch)+'</b>';i++}else out+=esc(ch)}
+  return out;
+}
+function palAll(){
+  const act=(l,h,run)=>({k:'action',l,h,run}),L=[];
+  if(qs.has('from'))L.push(act('Back to all changes','',viewBase));
+  L.push(act('Copy review notes for Claude','',copyReview),act('Open review notes','r',()=>rvToggle(true)));
+  L.push(act(mode==='s'?'Unified view':'Split view','s',()=>setMode(mode==='s'?'u':'s')),
+    act(wrap?'Don’t wrap long lines':'Wrap long lines','w',()=>setWrap(!wrap)),
+    act(syntax?'Turn off syntax highlighting':'Turn on syntax highlighting','h',()=>setSyntax(!syntax)));
+  if(D&&D.wt)L.push(act(D.untracked?'Hide untracked files':'Show untracked files','u',()=>setUntracked(!D.untracked)));
+  if(baseWT&&!CRECENT&&curC!=='wt')L.push(act('View uncommitted changes only','',viewUncommitted));
+  L.push(act('Collapse all files','',()=>$('bc').click()),act('Expand all files','',()=>$('be').click()),
+    act('Mark all files viewed','',()=>{for(const e of order){e.cb.checked=true;setViewed(e,true)}}),
+    act('Clear viewed marks','',()=>{for(const e of order){e.cb.checked=false;setViewed(e,false)}}),
+    act('Change left (base) ref…','',()=>$('ra').focus()),act('Change right ref…','',()=>$('rb').focus()));
+  if(D&&D.onto&&D.branch)L.push(act('Fetch & rebase onto '+D.onto,'',()=>$('br').click()));
+  for(const o of $('theme').options)L.push({k:'theme',l:'Theme: '+o.text,run:()=>{$('theme').value=o.value;$('theme').dispatchEvent(new Event('change'))}});
+  order.forEach((e,i)=>L.push({k:'file',l:fpath(e.f),h:'+'+e.f.add+' −'+e.f.del,run:()=>{e.sec.classList.remove('collapsed','hid');go(i)}}));
+  for(const c of COMMITS)L.push({k:'commit',l:c.short+'  '+c.subject,h:agoS(c.at*1000),run:()=>viewCommits(c,c)});
+  for(const c of CM)L.push({k:'note',l:c.path+':'+c.line+'  '+c.text.split('\n')[0],h:c.resolved?'resolved':'',run:()=>jumpTo(c)});
+  return L;
+}
+function palOpen(){PAL.hidden=false;$('palIn').value='';palFilter();$('palIn').focus()}
+function palClose(){PAL.hidden=true;$('palIn').blur()}
+function palFilter(){
+  const q=$('palIn').value.trim().toLowerCase().replace(/\s+/g,' ');
+  let L=palAll();
+  if(q)L=L.map(x=>({x,s:fz(q,x.l)})).filter(o=>o.s>=0).sort((a,b)=>b.s-a.s).map(o=>o.x);
+  else L=L.filter(x=>x.k==='action'||x.k==='file');
+  palItems=L.slice(0,100);palAct=0;
+  $('palL').innerHTML=palItems.map((x,i)=>'<div data-i="'+i+'"'+(i?'':' class="on"')+'><span class="k">'+x.k+'</span><span class="l">'+fzHl(x.l,q)+'</span><span class="h">'+esc(x.h||'')+'</span></div>').join('')||'<p>No matches.</p>';
+}
+function palMove(d){
+  if(!palItems.length)return;$('palL').children[palAct]?.classList.remove('on');
+  palAct=(palAct+d+palItems.length)%palItems.length;const a=$('palL').children[palAct];a.classList.add('on');a.scrollIntoView({block:'nearest'});
+}
+function palRun(i){const x=palItems[i];if(!x)return;palClose();x.run()}
+$('palIn').addEventListener('input',palFilter);
+$('palIn').addEventListener('keydown',ev=>{
+  if(ev.key==='ArrowDown'||ev.key==='ArrowUp'){ev.preventDefault();palMove(ev.key==='ArrowDown'?1:-1)}
+  else if(ev.key==='Enter'){ev.preventDefault();palRun(palAct)}
+  else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();palClose()}
+});
+$('palL').addEventListener('mousedown',ev=>{ev.preventDefault();const d=ev.target.closest('[data-i]');if(d)palRun(+d.dataset.i)});
+PAL.addEventListener('mousedown',ev=>{if(ev.target===PAL)palClose()});
+$('bk').onclick=palOpen;
+
 // ---- apply data ----
 function apply(d){
   const first=!D;D=d;
   $('repo').textContent=d.repo;document.title=d.repo+': '+(d.a||'index')+' → '+(d.staged?'index':(d.b||'working tree'));
   if(first){$('ra').value=d.a;$('rb').value=d.b;$('rb').placeholder=d.staged?'index':'working tree';
     vkey='rd.viewed:'+d.repo+':'+d.a+':'+d.b+':'+d.staged;viewed=LS.get(vkey,{})}
+  $('bu').hidden=!d.wt;$('bu').classList.toggle('on',!!d.untracked);
   const br=$('br');br.hidden=!(d.onto&&d.branch);
   if(!br.hidden)br.title='git fetch && git rebase --autostash '+d.onto+'  (rebases '+d.branch+')';
   $('asha').textContent=d.aSha&&d.aSha!==d.a?d.aSha:'';$('bsha').textContent=d.bSha&&d.bSha!==d.b?d.bSha:'';
@@ -734,6 +1276,7 @@ async function load(){
 function live(){
   const es=new EventSource(api('/api/events'));
   es.addEventListener('v',ev=>{if(ev.data!==ver)load()});
+  es.addEventListener('c',ev=>{if(ev.data!==cmStamp)loadComments()});
   es.onopen=()=>{$('live').classList.add('on');$('live').lastChild.textContent='live'};
   es.onerror=()=>{$('live').classList.remove('on');$('live').lastChild.textContent='offline'};
 }
@@ -809,7 +1352,7 @@ $('br').onclick=async()=>{
   b.disabled=false;b.textContent='Fetch & rebase';
 };
 function nav(){
-  const n=new URLSearchParams(qs);n.set('a',$('ra').value.trim());
+  const n=new URLSearchParams(qs);for(const k of ['from','c','c0'])n.delete(k);n.set('a',$('ra').value.trim());
   const b=$('rb').value.trim();if(b)n.set('b',b);else n.delete('b');
   location.search=n.toString();
 }
@@ -826,8 +1369,9 @@ for(const id of ['ra','rb']){
   });
 }
 addEventListener('keydown',ev=>{
+  if((ev.metaKey||ev.ctrlKey)&&!ev.shiftKey&&!ev.altKey&&ev.key.toLowerCase()==='k'){ev.preventDefault();if(PAL.hidden)palOpen();else palClose();return}
   if(ev.metaKey||ev.ctrlKey||ev.altKey)return;
-  const t=ev.target;if(t.tagName==='INPUT'){if(ev.key==='Escape')t.blur();return}
+  const t=ev.target;if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'){if(ev.key==='Escape')t.blur();return}
   const i=order.length?curIndex():0, e=order[i];
   switch(ev.key){
     case 'j':case 'n':go(Math.min(i+1,order.length-1));break;
@@ -838,13 +1382,20 @@ addEventListener('keydown',ev=>{
     case 'v':if(e){e.cb.checked=!e.cb.checked;setViewed(e,e.cb.checked);go(i)}break;
     case 'x':if(e){e.sec.classList.toggle('collapsed');go(i)}break;
     case '/':ev.preventDefault();$('filter').focus();break;
-    case 'Escape':if(!$('nav').hidden)nvClose();else if(sel)clearSel();break;
+    case 'Escape':if(!$('rv').hidden)rvToggle(false);else if(!$('nav').hidden)nvClose();else if(sel)clearSel();else if(draft)cancelDraft();break;
+    case 't':ev.preventDefault();palOpen();break;
+    case 'r':rvToggle();break;
+    case 'm':if(sel){ev.preventDefault();startNote()}else return;break;
+    case 'u':if(D&&D.wt)setUntracked(!D.untracked);else return;break;
+    case '[':stepCommit(1);break;
+    case ']':stepCommit(-1);break;
     case 'c':if(sel)doCopy('ref');else return;break;
     default:return;
   }
 });
 
 $('mu').classList.toggle('on',mode==='u');$('ms').classList.toggle('on',mode==='s');setWrap(wrap);$('bh').classList.toggle('on',syntax);$('bh').hidden=!HL;
+cmCount();loadCommits();
 load().then(live);
 })();
 </script>

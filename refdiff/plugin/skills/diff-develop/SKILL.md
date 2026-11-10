@@ -22,6 +22,18 @@ On first use, if `refdiff` is not on `PATH`, the script downloads the prebuilt b
 
 If it fails with `<ref> not found`, ask whether to run `git fetch origin <branch>`, then retry.
 
+## Review notes
+
+The user can leave line notes in the page. When they ask you to address their review, read them, or "do the comments":
+
+```bash
+refdiff comments            # open notes as markdown: file:line, quoted code, note text, id
+refdiff comments --json     # same, structured
+refdiff comments --resolve <id> [<id>...]   # mark a note done after addressing it (page updates live)
+```
+
+Use the `refdiff` binary the start script found (on PATH or `~/.cache/refdiff/<version>/refdiff`). Run it inside the repo.
+
 ## Stop
 
 ```bash
@@ -31,5 +43,5 @@ If it fails with `<ref> not found`, ask whether to run `git fetch origin <branch
 ## Notes
 
 - The page updates live as files are edited, committed, or staged. It does not pick up new commits on the base ref until a `git fetch`; after a fetch it refreshes on its own.
-- Untracked files are not shown (same as `git diff`).
+- Untracked files are shown (badge `U`); start refdiff with `--no-untracked` to hide them.
 - Server log: `$TMPDIR/refdiff-<port>.log`.

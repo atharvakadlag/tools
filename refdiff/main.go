@@ -25,6 +25,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -57,18 +58,26 @@ type File struct {
 	Bin   bool    `json:"bin,omitempty"`
 	Add   int     `json:"add"`
 	Del   int     `json:"del"`
+	OB    string  `json:"ob,omitempty"` // old/new blob ids (from the "index" line), for whole-file highlighting
+	NB    string  `json:"nb,omitempty"`
+	WT    bool    `json:"wt,omitempty"` // new side is the working tree (its blob isn't in the object store)
+	Untr  bool    `json:"u,omitempty"`  // untracked file (synthesized as an addition)
 	Hunks []*Hunk `json:"hunks"`
 }
 
 type Query struct {
-	A, B   string
-	Staged bool
-	Paths  []string
+	A, B      string
+	Staged    bool
+	Untracked bool // include untracked files (working-tree comparisons only)
+	Paths     []string
 }
 
 func (q Query) key() string {
-	return fmt.Sprintf("%q|%q|%v|%q", q.A, q.B, q.Staged, q.Paths)
+	return fmt.Sprintf("%q|%q|%v|%v|%q", q.A, q.B, q.Staged, q.untracked(), q.Paths)
 }
+
+// untracked reports whether untracked files are part of this diff.
+func (q Query) untracked() bool { return q.Untracked && q.worktree() && !q.Staged }
 
 func (q Query) values() url.Values {
 	v := url.Values{}
@@ -79,6 +88,9 @@ func (q Query) values() url.Values {
 	if q.Staged {
 		v.Set("staged", "1")
 	}
+	if q.Untracked {
+		v.Set("u", "1")
+	}
 	for _, p := range q.Paths {
 		v.Add("p", p)
 	}
@@ -86,7 +98,7 @@ func (q Query) values() url.Values {
 }
 
 func queryFrom(v url.Values) (Query, error) {
-	q := Query{A: v.Get("a"), B: v.Get("b"), Staged: v.Get("staged") == "1", Paths: v["p"]}
+	q := Query{A: v.Get("a"), B: v.Get("b"), Staged: v.Get("staged") == "1", Untracked: v.Get("u") == "1", Paths: v["p"]}
 	if strings.HasPrefix(q.A, "-") || strings.HasPrefix(q.B, "-") {
 		return q, errors.New("refs may not start with '-'")
 	}
@@ -121,6 +133,7 @@ func git(args ...string) ([]byte, error) {
 
 func diffArgs(q Query) []string {
 	args := []string{"-c", "core.quotePath=false", "diff", "--no-color", "--no-ext-diff", "-M",
+		"--full-index",
 		"--src-prefix=a/", "--dst-prefix=b/", "-U" + strconv.Itoa(optContext)}
 	if optWS {
 		args = append(args, "-w")
@@ -249,6 +262,11 @@ func parse(r io.Reader) ([]*File, uint64, error) {
 			oldRem, newRem = oc, nc
 			f.Hunks = append(f.Hunks, h)
 		case h != nil:
+		case strings.HasPrefix(line, "index "):
+			ids, _, _ := strings.Cut(line[len("index "):], " ")
+			if a, b, ok := strings.Cut(ids, ".."); ok && !strings.Contains(a, ",") {
+				f.OB, f.NB = blobID(a), blobID(b)
+			}
 		case strings.HasPrefix(line, "new file mode "):
 			f.St = "A"
 		case strings.HasPrefix(line, "deleted file mode "):
@@ -283,7 +301,107 @@ func parse(r io.Reader) ([]*File, uint64, error) {
 	return files, all.Sum64(), sc.Err()
 }
 
-func runDiff(q Query) ([]*File, uint64, error) { return runDiffArgs(diffArgs(q)) }
+// blobID returns id if it is a full, non-zero object id, else "".
+func blobID(id string) string {
+	if len(id) != 40 && len(id) != 64 || strings.Trim(id, "0") == "" {
+		return ""
+	}
+	for _, c := range id {
+		if !('0' <= c && c <= '9' || 'a' <= c && c <= 'f') {
+			return ""
+		}
+	}
+	return id
+}
+
+func runDiff(q Query) ([]*File, uint64, error) {
+	files, sum, err := runDiffArgs(diffArgs(q))
+	if err != nil {
+		return nil, 0, err
+	}
+	if q.worktree() && !q.Staged {
+		for _, f := range files {
+			f.WT = true
+			f.NB = "" // the hash git prints for a working-tree file isn't in the object store; read it by path
+		}
+	}
+	if q.untracked() {
+		h := fnv.New64a()
+		fmt.Fprint(h, sum)
+		for _, f := range untrackedFiles(q.Paths) {
+			h.Write([]byte(f.K))
+			files = append(files, f)
+		}
+		sum = h.Sum64()
+		sort.SliceStable(files, func(i, j int) bool { return filePath(files[i]) < filePath(files[j]) })
+	}
+	return files, sum, nil
+}
+
+func filePath(f *File) string {
+	if f.St == "D" {
+		return f.Old
+	}
+	return f.New
+}
+
+const untrMaxFiles, untrMaxSize = 500, 1 << 20
+
+// untrackedFiles synthesizes "new file" diffs for untracked, non-ignored files (git diff omits them).
+func untrackedFiles(paths []string) []*File {
+	out, err := git(append([]string{"ls-files", "-z", "--others", "--exclude-standard", "--full-name", "--"}, paths...)...)
+	if err != nil {
+		return nil
+	}
+	var files []*File
+	for _, p := range strings.Split(string(out), "\x00") {
+		if p == "" {
+			continue
+		}
+		if len(files) >= untrMaxFiles {
+			break
+		}
+		full := filepath.Join(repoRoot, filepath.FromSlash(p))
+		st, err := os.Lstat(full)
+		if err != nil || st.IsDir() {
+			continue
+		}
+		f := &File{St: "A", Old: p, New: p, WT: true, Untr: true, Hunks: []*Hunk{}}
+		h := fnv.New64a()
+		fmt.Fprintf(h, "untracked\x00%s\x00%d\x00%d", p, st.Size(), st.ModTime().UnixNano())
+		var data []byte
+		if st.Mode()&os.ModeSymlink != 0 {
+			t, _ := os.Readlink(full)
+			data = []byte(t)
+			f.Mode = "symlink"
+		} else if st.Size() > untrMaxSize {
+			f.Bin = true
+		} else if data, err = os.ReadFile(full); err != nil {
+			continue
+		}
+		if bytes.IndexByte(data[:min(len(data), 8000)], 0) >= 0 {
+			f.Bin = true
+		}
+		if !f.Bin && len(data) > 0 {
+			text := string(data)
+			noEOL := !strings.HasSuffix(text, "\n")
+			lines := strings.Split(strings.TrimSuffix(text, "\n"), "\n")
+			hk := &Hunk{OS: 0, NS: 1, H: fmt.Sprintf("@@ -0,0 +1,%d @@", len(lines)), L: make([]string, 0, len(lines)+1)}
+			for _, l := range lines {
+				hk.L = append(hk.L, "+"+l)
+			}
+			if noEOL {
+				hk.L = append(hk.L, `\ No newline at end of file`)
+			}
+			f.Add = len(lines)
+			f.Hunks = append(f.Hunks, hk)
+			h.Write(data)
+		}
+		f.K = strconv.FormatUint(h.Sum64(), 36)
+		files = append(files, f)
+	}
+	return files
+}
 
 func runDiffArgs(args []string) ([]*File, uint64, error) {
 	cmd := exec.Command("git", args...)
@@ -328,7 +446,11 @@ func fingerprint(q Query) string {
 		if st, err := os.Stat(filepath.Join(gitDir, "index")); err == nil {
 			fmt.Fprintf(&b, "|idx %d %d", st.ModTime().UnixNano(), st.Size())
 		}
-		out, _ := git(append([]string{"-c", "core.quotePath=false", "status", "--porcelain=v1", "-z", "--untracked-files=no", "--"}, q.Paths...)...)
+		untr := "--untracked-files=no"
+		if q.untracked() {
+			untr = "--untracked-files=all"
+		}
+		out, _ := git(append([]string{"-c", "core.quotePath=false", "status", "--porcelain=v1", "-z", untr, "--"}, q.Paths...)...)
 		b.Write(out)
 		if !q.Staged {
 			for _, ent := range bytes.Split(out, []byte{0}) {
@@ -433,7 +555,7 @@ func (w *watcher) refresh() {
 	w.ver++
 	p := map[string]any{
 		"ver": verStr(w.ver), "repo": filepath.Base(repoRoot), "a": w.q.A, "b": w.q.B, "staged": w.q.Staged,
-		"paths": w.q.Paths, "aSha": shortSha(w.q.A), "bSha": shortSha(w.q.B), "ms": ms,
+		"paths": w.q.Paths, "untracked": w.q.untracked(), "wt": w.q.worktree() && !w.q.Staged, "aSha": shortSha(w.q.A), "bSha": shortSha(w.q.B), "ms": ms,
 		"at": time.Now().UnixMilli(), "cmd": "git " + strings.Join(diffArgs(w.q)[2:], " "),
 	}
 	if err != nil {
@@ -663,10 +785,21 @@ func serve(ln net.Listener) error {
 		fl.Flush()
 		hb := time.NewTicker(15 * time.Second)
 		defer hb.Stop()
+		ct := time.NewTicker(time.Second) // comments may be edited by `refdiff comments` or another tab
+		defer ct.Stop()
+		stamp := commentsStamp()
+		fmt.Fprintf(rw, "event: c\ndata: %s\n\n", stamp)
+		fl.Flush()
 		for {
 			select {
 			case <-r.Context().Done():
 				return
+			case <-ct.C:
+				if s := commentsStamp(); s != stamp {
+					stamp = s
+					fmt.Fprintf(rw, "event: c\ndata: %s\n\n", stamp)
+					fl.Flush()
+				}
 			case v := <-c:
 				fmt.Fprintf(rw, "event: v\ndata: %s\n\n", verStr(v))
 				fl.Flush()
@@ -741,6 +874,101 @@ func serve(ln net.Listener) error {
 		rw.Header().Set("Cache-Control", "no-store")
 		rw.Write(data)
 	})
+	// raw blob by id (old/new side of a diffed file, for whole-file highlighting)
+	mux.HandleFunc("/api/blob", func(rw http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("id")
+		if blobID(id) == "" {
+			http.Error(rw, "bad id", 400)
+			return
+		}
+		data, err := git("cat-file", "blob", id)
+		if err != nil {
+			http.Error(rw, err.Error(), 404)
+			return
+		}
+		if bytes.IndexByte(data[:min(len(data), 8000)], 0) >= 0 {
+			http.Error(rw, "binary file", 415)
+			return
+		}
+		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		rw.Header().Set("Cache-Control", "max-age=86400") // content-addressed
+		rw.Write(data)
+	})
+	mux.HandleFunc("/api/commits", func(rw http.ResponseWriter, r *http.Request) {
+		q, err := queryFrom(r.URL.Query())
+		if err != nil {
+			http.Error(rw, err.Error(), 400)
+			return
+		}
+		list, rng, recent, err := commitRange(q)
+		if err != nil {
+			http.Error(rw, err.Error(), 500)
+			return
+		}
+		writeJSON(rw, map[string]any{"commits": list, "range": rng, "recent": recent})
+	})
+	mux.HandleFunc("/api/comments", func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			cmu.Lock()
+			list, stamp := loadComments(), commentsStamp()
+			cmu.Unlock()
+			writeJSON(rw, map[string]any{"comments": list, "stamp": stamp})
+			return
+		}
+		if r.Method != http.MethodPost || r.Header.Get("X-Refdiff") != "1" {
+			http.Error(rw, "forbidden", 403)
+			return
+		}
+		var c Comment
+		if err := json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&c); err != nil {
+			http.Error(rw, err.Error(), 400)
+			return
+		}
+		saved, err := upsertComment(c)
+		if err != nil {
+			http.Error(rw, err.Error(), 400)
+			return
+		}
+		writeJSON(rw, saved)
+	})
+	mux.HandleFunc("/api/comments/do", func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost || r.Header.Get("X-Refdiff") != "1" {
+			http.Error(rw, "forbidden", 403)
+			return
+		}
+		v := r.URL.Query()
+		ids := v["id"]
+		set := map[string]bool{}
+		for _, id := range ids {
+			set[id] = true
+		}
+		var n int
+		var err error
+		switch v.Get("op") {
+		case "delete":
+			n, err = deleteComments(func(c *Comment) bool { return set[c.ID] })
+		case "clear":
+			n, err = deleteComments(func(c *Comment) bool { return c.Resolved })
+		case "resolve", "reopen":
+			n, err = resolveComments(ids, v.Get("op") == "resolve")
+		default:
+			http.Error(rw, "bad op", 400)
+			return
+		}
+		if err != nil {
+			http.Error(rw, err.Error(), 500)
+			return
+		}
+		writeJSON(rw, map[string]any{"n": n})
+	})
+	mux.HandleFunc("/api/comments/prompt", func(rw http.ResponseWriter, r *http.Request) {
+		cmu.Lock()
+		list := loadComments()
+		cmu.Unlock()
+		rw.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		rw.Header().Set("Cache-Control", "no-store")
+		io.WriteString(rw, commentsMarkdown(list, r.URL.Query().Get("all") == "1"))
+	})
 	mux.HandleFunc("/api/refs", func(rw http.ResponseWriter, r *http.Request) {
 		out, _ := git("for-each-ref", "--sort=-committerdate", "--count=2000",
 			"--format=%(refname:short)%00%(refname)%00%(committerdate:relative)%00%(subject)",
@@ -783,6 +1011,22 @@ func serve(ln net.Listener) error {
 	}))
 }
 
+func writeJSON(rw http.ResponseWriter, v any) {
+	rw.Header().Set("Content-Type", "application/json")
+	rw.Header().Set("Cache-Control", "no-store")
+	json.NewEncoder(rw).Encode(v)
+}
+
+// findRepo resolves repoRoot and gitDir for optDir, or exits.
+func findRepo() {
+	out, err := git("rev-parse", "--show-toplevel", "--absolute-git-dir")
+	if err != nil {
+		die("not a git repository: %v", err)
+	}
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	repoRoot, gitDir = lines[0], lines[len(lines)-1]
+}
+
 func openBrowser(u string) {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
@@ -799,6 +1043,7 @@ func openBrowser(u string) {
 const usage = `refdiff - live browser diff between git references
 
 usage: refdiff [options] [A [B]] [-- paths...]
+       refdiff comments [--all|--json|--resolve <id>...]   (see refdiff comments --help)
 
   refdiff               working tree vs HEAD
   refdiff A             working tree vs A
@@ -810,6 +1055,7 @@ options:
   -U <n>           context lines (default 3)
   -w               ignore whitespace
   --staged         compare index instead of working tree
+  --no-untracked   hide untracked files (shown by default in working-tree diffs)
   --port <n>       listen port (default: stable per-repo port)
   --interval <ms>  poll interval for changes (default 700)
   --no-open        don't open the browser
@@ -822,7 +1068,11 @@ func die(format string, a ...any) {
 }
 
 func main() {
-	var q Query
+	if len(os.Args) > 1 && os.Args[1] == "comments" {
+		commentsCmd(os.Args[2:])
+		return
+	}
+	q := Query{Untracked: true}
 	var refs []string
 	port, noOpen := 0, false
 	args := os.Args[1:]
@@ -853,6 +1103,8 @@ func main() {
 			optWS = true
 		case "--staged", "--cached":
 			q.Staged = true
+		case "--no-untracked":
+			q.Untracked = false
 		case "--port":
 			port, _ = strconv.Atoi(next(&i, a))
 		case "--interval":
@@ -878,12 +1130,7 @@ func main() {
 		die("too many refs (use -- before paths)")
 	}
 
-	out, err := git("rev-parse", "--show-toplevel", "--absolute-git-dir")
-	if err != nil {
-		die("not a git repository: %v", err)
-	}
-	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	repoRoot, gitDir = lines[0], lines[len(lines)-1]
+	findRepo()
 	for _, r := range refs {
 		if _, err := git("rev-parse", "--verify", "--quiet", "--end-of-options", r); err != nil && !strings.Contains(r, "..") {
 			die("unknown ref %q", r)
