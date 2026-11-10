@@ -77,7 +77,7 @@ func (q Query) key() string {
 }
 
 // untracked reports whether untracked files are part of this diff.
-func (q Query) untracked() bool { return q.Untracked && q.worktree() && !q.Staged }
+func (q Query) untracked() bool { return q.Untracked && q.worktree() && !q.Staged && q.B != wtSnap }
 
 func (q Query) values() url.Values {
 	v := url.Values{}
@@ -106,7 +106,9 @@ func queryFrom(v url.Values) (Query, error) {
 }
 
 // worktree reports whether the right side is the working tree or index (i.e. can change without commits).
-func (q Query) worktree() bool { return q.Staged || (q.B == "" && !strings.Contains(q.A, "..")) }
+func (q Query) worktree() bool {
+	return q.Staged || q.B == wtSnap || (q.B == "" && !strings.Contains(q.A, ".."))
+}
 
 var (
 	optDir      = ""
@@ -315,6 +317,14 @@ func blobID(id string) string {
 }
 
 func runDiff(q Query) ([]*File, uint64, error) {
+	if q.B == wtSnap { // snapshot (tree) → working tree: diff two trees, so untracked files count and every blob exists
+		tree, err := snapshotTree()
+		if err != nil {
+			return nil, 0, err
+		}
+		q.B = tree
+		return runDiffArgs(diffArgs(q))
+	}
 	files, sum, err := runDiffArgs(diffArgs(q))
 	if err != nil {
 		return nil, 0, err
@@ -447,7 +457,7 @@ func fingerprint(q Query) string {
 			fmt.Fprintf(&b, "|idx %d %d", st.ModTime().UnixNano(), st.Size())
 		}
 		untr := "--untracked-files=no"
-		if q.untracked() {
+		if q.untracked() || q.B == wtSnap {
 			untr = "--untracked-files=all"
 		}
 		out, _ := git(append([]string{"-c", "core.quotePath=false", "status", "--porcelain=v1", "-z", untr, "--"}, q.Paths...)...)
@@ -555,7 +565,7 @@ func (w *watcher) refresh() {
 	w.ver++
 	p := map[string]any{
 		"ver": verStr(w.ver), "repo": filepath.Base(repoRoot), "a": w.q.A, "b": w.q.B, "staged": w.q.Staged,
-		"paths": w.q.Paths, "untracked": w.q.untracked(), "wt": w.q.worktree() && !w.q.Staged, "aSha": shortSha(w.q.A), "bSha": shortSha(w.q.B), "ms": ms,
+		"paths": w.q.Paths, "untracked": w.q.untracked(), "wt": w.q.worktree() && !w.q.Staged && w.q.B != wtSnap, "aSha": shortSha(w.q.A), "bSha": shortSha(w.q.B), "ms": ms,
 		"at": time.Now().UnixMilli(), "cmd": "git " + strings.Join(diffArgs(w.q)[2:], " "),
 	}
 	if err != nil {
@@ -568,6 +578,9 @@ func (w *watcher) refresh() {
 	}
 	if out, err := git("symbolic-ref", "--short", "-q", "HEAD"); err == nil {
 		p["branch"] = strings.TrimSpace(string(out))
+	}
+	if w.payload != nil && w.q.worktree() && !w.q.Staged {
+		requestSnapshot()
 	}
 	w.payload, _ = json.Marshal(p)
 	for c := range w.subs {
@@ -785,9 +798,10 @@ func serve(ln net.Listener) error {
 		fl.Flush()
 		hb := time.NewTicker(15 * time.Second)
 		defer hb.Stop()
-		ct := time.NewTicker(time.Second) // comments may be edited by `refdiff comments` or another tab
+		ct := time.NewTicker(400 * time.Millisecond) // comments/agents/timeline change outside this page too
 		defer ct.Stop()
 		stamp := commentsStamp()
+		av, tv := int64(-1), int64(-1)
 		fmt.Fprintf(rw, "event: c\ndata: %s\n\n", stamp)
 		fl.Flush()
 		for {
@@ -795,6 +809,16 @@ func serve(ln net.Listener) error {
 			case <-r.Context().Done():
 				return
 			case <-ct.C:
+				if v := agentVer.Load(); v != av {
+					av = v
+					fmt.Fprintf(rw, "event: a\ndata: %d\n\n", v)
+					fl.Flush()
+				}
+				if v := tlVer.Load(); v != tv {
+					tv = v
+					fmt.Fprintf(rw, "event: t\ndata: %d\n\n", v)
+					fl.Flush()
+				}
 				if s := commentsStamp(); s != stamp {
 					stamp = s
 					fmt.Fprintf(rw, "event: c\ndata: %s\n\n", stamp)
@@ -840,10 +864,20 @@ func serve(ln net.Listener) error {
 			return
 		}
 		q.Paths = []string{":(top)" + path} // path is repo-relative; git may run in a subdir
+		if q.B == wtSnap {
+			if q.B, err = snapshotTree(); err != nil {
+				http.Error(rw, err.Error(), 500)
+				return
+			}
+		}
 		args := diffArgs(q)
+		ctx := "1000000"
+		if c, err := strconv.Atoi(v.Get("ctx")); err == nil && c >= 0 {
+			ctx = strconv.Itoa(c)
+		}
 		for i, a := range args {
 			if strings.HasPrefix(a, "-U") {
-				args[i] = "-U1000000"
+				args[i] = "-U" + ctx
 			}
 		}
 		files, _, err := runDiffArgs(args)
@@ -969,6 +1003,52 @@ func serve(ln net.Listener) error {
 		rw.Header().Set("Cache-Control", "no-store")
 		io.WriteString(rw, commentsMarkdown(list, r.URL.Query().Get("all") == "1"))
 	})
+	mux.HandleFunc("/api/timeline", func(rw http.ResponseWriter, r *http.Request) {
+		tlMu.Lock()
+		loadTimeline()
+		list := append([]Snap{}, timeline...)
+		tlMu.Unlock()
+		writeJSON(rw, list)
+	})
+	post := func(path string, h func(rw http.ResponseWriter, r *http.Request)) {
+		mux.HandleFunc(path, func(rw http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost || r.Header.Get("X-Refdiff") != "1" { // forces a CORS preflight
+				http.Error(rw, "forbidden", 403)
+				return
+			}
+			h(rw, r)
+		})
+	}
+	post("/api/snapshot", func(rw http.ResponseWriter, r *http.Request) {
+		s, err := recordSnapshot(r.URL.Query().Get("label"))
+		if err != nil {
+			http.Error(rw, err.Error(), 500)
+			return
+		}
+		writeJSON(rw, s)
+	})
+	mux.HandleFunc("/api/agent", func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+		rw.Header().Set("Cache-Control", "no-store")
+		rw.Write(agentsJSON())
+	})
+	post("/api/agent/start", func(rw http.ResponseWriter, r *http.Request) {
+		v := r.URL.Query()
+		q, err := queryFrom(v)
+		if err != nil {
+			http.Error(rw, err.Error(), 400)
+			return
+		}
+		a, err := startAgent(v.Get("kind"), q, v["id"])
+		if err != nil {
+			http.Error(rw, err.Error(), 409)
+			return
+		}
+		writeJSON(rw, map[string]any{"id": a.ID})
+	})
+	post("/api/agent/stop", func(rw http.ResponseWriter, r *http.Request) {
+		writeJSON(rw, map[string]any{"stopped": stopAgent()})
+	})
 	mux.HandleFunc("/api/refs", func(rw http.ResponseWriter, r *http.Request) {
 		out, _ := git("for-each-ref", "--sort=-committerdate", "--count=2000",
 			"--format=%(refname:short)%00%(refname)%00%(committerdate:relative)%00%(subject)",
@@ -1056,6 +1136,8 @@ options:
   -w               ignore whitespace
   --staged         compare index instead of working tree
   --no-untracked   hide untracked files (shown by default in working-tree diffs)
+  --agent-allow <rules>  extra Claude Code permission rules for agents, comma-separated,
+                   e.g. "Bash(go test:*),Bash(go vet:*)" so Claude can verify its fixes
   --port <n>       listen port (default: stable per-repo port)
   --interval <ms>  poll interval for changes (default 700)
   --no-open        don't open the browser
@@ -1105,6 +1187,8 @@ func main() {
 			q.Staged = true
 		case "--no-untracked":
 			q.Untracked = false
+		case "--agent-allow":
+			optAgentAllow = append(optAgentAllow, strings.Split(next(&i, a), ",")...)
 		case "--port":
 			port, _ = strconv.Atoi(next(&i, a))
 		case "--interval":
@@ -1154,6 +1238,7 @@ func main() {
 		die("%v", err)
 	}
 	go getWatcher(q) // warm up the first diff while the browser launches
+	go snapshotLoop()
 	u := fmt.Sprintf("http://127.0.0.1:%d/?%s", ln.Addr().(*net.TCPAddr).Port, q.values().Encode())
 	fmt.Printf("refdiff serving %s\n  %s\nCtrl-C to stop.\n", repoRoot, u)
 	if !noOpen {

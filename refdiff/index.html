@@ -279,6 +279,48 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
 #palL p{margin:10px;color:var(--mut)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:50;max-width:min(640px,calc(100vw - 32px));padding:8px 14px;border-radius:8px;background:var(--fg);color:var(--bg);font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 #toast[hidden]{display:none}#toast.bad{background:var(--delfg);color:#fff}
+/* ---- Claude agents, timeline, since-viewed ---- */
+:root{--ai:#d97757}
+#bai{color:var(--ai);border-color:color-mix(in srgb,var(--ai) 55%,var(--bd));font-weight:600;display:inline-flex;gap:6px;align-items:center}
+#bai.run{background:var(--ai);border-color:var(--ai);color:#fff}
+#cmenu{position:fixed;z-index:30;width:300px;padding:4px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:13px}
+#cmenu[hidden]{display:none}
+#cmenu button{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 10px;border-radius:6px;cursor:pointer}
+#cmenu button:hover:not(:disabled){background:var(--hh)}#cmenu button:disabled{opacity:.45;cursor:default}
+#cmenu small{display:block;color:var(--mut);font-size:11px;margin-top:1px}
+.by{flex:none;font-size:10.5px;font-weight:600;padding:0 7px;border-radius:9px;background:var(--ai);color:#fff;line-height:17px}
+.sev{flex:none;font-size:10px;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.sev-high{color:var(--delfg)}.sev-medium{color:#d29922}.sev-low{color:var(--mut)}
+.cmt.ai{border-left-color:var(--ai)}#rvList .it.ai{border-left-color:var(--ai)}
+.spin{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+#ag{position:fixed;right:16px;bottom:16px;z-index:35;width:min(470px,calc(100vw - 32px));background:var(--bg);border:1px solid var(--bd);border-top:3px solid var(--ai);border-radius:10px;box-shadow:0 16px 40px rgba(0,0,0,.38);font-size:12.5px;overflow:hidden}
+#ag[hidden]{display:none}
+#agHd{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bar);border-bottom:1px solid var(--bd)}
+#agHd .spin{color:var(--ai)}
+#agHd b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#agHd .st2{flex:none;font-size:11px;color:var(--mut)}
+#agHd .x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:13px}
+#agHd .okc{color:var(--addfg);font-weight:700}#agHd .badc{color:var(--delfg);font-weight:700}
+#agLog{max-height:210px;overflow:auto;padding:6px 10px;font:11.5px/1.65 ui-monospace,Menlo,monospace;color:var(--mut)}
+#agLog div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#agLog .tool{color:var(--fg)}#agLog .tool::before{content:"› ";color:var(--ai)}
+#agLog .text{color:var(--fg);font:12.5px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;white-space:pre-wrap;max-height:4.4em;margin:3px 0}
+#agLog .error{color:var(--delfg)}#agLog .more{cursor:pointer;color:var(--acc)}
+#agSum{padding:8px 10px;border-top:1px solid var(--bd);white-space:pre-wrap;max-height:200px;overflow:auto;font-size:13px}
+#agSum[hidden]{display:none}
+#agAct{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 10px;border-top:1px solid var(--bd)}
+#tls{margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--bd)}
+#tls[hidden]{display:none}
+#tls .sh{display:flex;gap:6px;align-items:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);padding:2px 4px 4px;cursor:pointer;user-select:none}
+#tls .sh span:last-child{font-weight:400}
+#tls.cl .sh .car{transform:rotate(-90deg)}#tls.cl .clb{display:none}
+#tls .clb{max-height:26vh;overflow:auto}
+.ci .tm{flex:none;font:11px ui-monospace,Menlo,monospace;color:var(--mut)}
+.ci.lab .su{color:var(--ai)}
+.chg{flex:none;font-size:11px;color:#d29922;border:1px solid currentColor;border-radius:10px;padding:0 8px;cursor:pointer;background:none;line-height:18px}
+.chg[hidden]{display:none}.chg.on{background:#d29922;color:#fff;border-color:#d29922}
+.dotc{flex:none;color:#d29922;font-size:10px}
 @media (max-width:800px){#wrap{grid-template-columns:1fr}#side{display:none}#top input.ref{width:90px}#stats{display:none}}
 </style>
 </head>
@@ -300,6 +342,7 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
   <button class="btn" id="bw" title="Wrap long lines (w)">Wrap</button>
   <button class="btn" id="bc" title="Collapse all">Collapse</button>
   <button class="btn" id="be" title="Expand all">Expand</button>
+  <button class="btn" id="bai" title="Ask Claude to review this diff or fix your notes">✦ Claude</button>
   <button class="btn" id="brv" title="Review notes (r)">Review</button>
   <button class="btn" id="bk" title="Command palette: files, commits, notes, actions (⌘K or t)">⌘K</button>
   <span id="live" title="Live: auto-refreshes when refs or files change"><i></i><span>live</span></span>
@@ -307,6 +350,7 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
 <div id="wrap">
   <nav id="side">
     <div id="cms" hidden></div>
+    <div id="tls" hidden></div>
     <div id="prog"></div>
     <input id="filter" placeholder="Filter files  ( / )" spellcheck="false">
     <div id="list"></div>
@@ -320,7 +364,7 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
 </aside>
   <aside id="rv" hidden>
     <header><span id="rvHd">Review</span><span class="sp"></span><button class="x" id="rvClose" title="Close (Esc)">✕</button></header>
-    <div id="rvAct"><button class="btn ok" id="rvCopy" title="Copy all open notes as a markdown prompt">Copy for Claude</button><button class="btn" id="rvResAll">Resolve all</button><button class="btn" id="rvClear">Delete resolved</button><label><input type="checkbox" id="rvShow"> show resolved</label></div>
+    <div id="rvAct"><button class="btn ok" id="rvFix" title="Let Claude edit the code to address every open note">✦ Fix all with Claude</button><button class="btn" id="rvCopy" title="Copy all open notes as a markdown prompt">Copy for Claude</button><button class="btn" id="rvResAll">Resolve all</button><button class="btn" id="rvClear">Delete resolved</button><label><input type="checkbox" id="rvShow"> show resolved</label></div>
     <div id="rvTip">Notes are saved in <code>.git/refdiff/comments.json</code>. In Claude Code, run <code>refdiff comments</code> to read them; Claude can mark each one done with <code>refdiff comments --resolve &lt;id&gt;</code>, and this page updates live.</div>
     <div id="rvList"></div>
   </aside>
@@ -328,6 +372,8 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
 </div>
 <div id="pal" hidden><div class="bx"><input id="palIn" spellcheck="false" autocomplete="off" placeholder="Jump to a file, commit or note, or run an action…"><div id="palL"></div></div></div>
 <div id="toast" hidden></div>
+<div id="cmenu" hidden></div>
+<div id="ag" hidden><div id="agHd"></div><div id="agLog"></div><div id="agSum" hidden></div><div id="agAct"></div></div>
 <script src="/hl.js"></script>
 <script>
 (()=>{
@@ -580,15 +626,19 @@ function pathHtml(f){
   if((f.st==='R'||f.st==='C')&&f.old!==f.new)return esc(f.old)+' <span class="arr">→</span> '+esc(f.new);
   return esc(fpath(f));
 }
-function isViewed(f){return viewed[fpath(f)]===f.k}
+function isViewed(f){const v=viewed[fpath(f)];return !!v&&(v===f.k||v.k===f.k)}
+// The snapshot tree taken when this file was last marked viewed, if it has changed since.
+function viewedTree(f){const v=viewed[fpath(f)];return v&&typeof v==='object'&&v.k!==f.k&&v.t?v.t:null}
 
 function make(f){
   const sec=document.createElement('section');sec.className='file';
   sec.innerHTML='<header><button class="tog" title="Collapse (x)">▾</button>'+stBadge(f)+
     '<span class="path" title="Click to copy path">'+pathHtml(f)+(f.sim&&f.st!=='M'?' <span class="arr">('+esc(f.sim)+')</span>':'')+'</span>'+
     '<span class="ct"><span class="ad">+'+f.add+'</span> <span class="dl">−'+f.del+'</span></span>'+
+    '<button class="chg" hidden title="This file changed after you marked it viewed — click to see just those changes">changed since viewed</button>'+
     '<label class="vw"><input type="checkbox"> Viewed</label></header><div class="body"></div>';
-  const e={f,sec,body:sec.lastChild,cb:sec.querySelector('input'),n:nlines(f),force:false,exp:[]};
+  const e={f,sec,body:sec.lastChild,cb:sec.querySelector('input'),chg:sec.querySelector('.chg'),n:nlines(f),force:false,exp:[]};
+  e.chg.hidden=!viewedTree(f);e.chg.onclick=()=>toggleSince(e);
   e.body._e=e;
   sec.querySelector('.tog').onclick=()=>sec.classList.toggle('collapsed');
   sec.querySelector('.path').onclick=()=>{try{navigator.clipboard.writeText(fpath(f))}catch(_){}};
@@ -638,9 +688,25 @@ filesEl.addEventListener('click',ev=>{
 const io=new IntersectionObserver(ents=>{for(const x of ents)if(x.isIntersecting)render(x.target._e)},{rootMargin:'1500px 0px'});
 
 function setViewed(e,v){
-  const p=fpath(e.f);
-  if(v){viewed[p]=e.f.k;e.sec.classList.add('collapsed')}else{delete viewed[p];e.sec.classList.remove('collapsed')}
+  const p=fpath(e.f),k=e.f.k;
+  if(v){
+    viewed[p]={k};e.sec.classList.add('collapsed');
+    if(baseWT)fetch('/api/snapshot',{method:'POST',headers:{'X-Refdiff':'1'}}).then(r=>r.json()).then(s=>{
+      if(viewed[p]&&viewed[p].k===k){viewed[p].t=s.tree;LS.set(vkey,viewed)}}).catch(()=>{});
+  }else{delete viewed[p];e.sec.classList.remove('collapsed')}
+  e.chg.hidden=!viewedTree(e.f);
   LS.set(vkey,viewed);sidebar();
+}
+// Show only what changed in a file since you marked it viewed (snapshot → live working tree).
+async function toggleSince(e){
+  if(e.body._e!==e){e.body._e=e;e.chg.classList.remove('on');e.chg.textContent='changed since viewed';render(e);return}
+  const t=viewedTree(e.f);if(!t)return;
+  let fd=null;
+  try{const r=await fetch('/api/filediff?'+new URLSearchParams({a:t,b:'@wt',path:fpath(e.f),ctx:3}),{cache:'no-store'});if(r.ok)fd=(await r.json()).file}catch(_){}
+  if(!fd){toast(true,'No changes since you viewed it.');return}
+  const x={f:fd,sec:e.sec,body:e.body,cb:e.cb,chg:e.chg,exp:[],n:0,force:true};
+  e.body._e=x;e.chg.classList.add('on');e.chg.textContent='since viewed: +'+fd.add+' −'+fd.del+' ✕';
+  e.sec.classList.remove('collapsed');render(x);
 }
 
 // ---- scroll anchor (keeps position stable across live updates) ----
@@ -676,7 +742,7 @@ function sidebar(){
     if(k.e){
       const f=k.e.f,nc=cmFor(f).filter(c=>!c.resolved).length;
       s+='<a data-i="'+k.i+'"'+(isViewed(f)?' class="vd"':'')+' style="padding-left:'+(6+depth*12)+'px" title="'+escA(fpath(f))+'">'+stBadge(f)+
-         '<span class="nm">'+esc(k.name)+'</span>'+(nc?'<span class="cmc" title="'+nc+' open note'+(nc>1?'s':'')+'">● '+nc+'</span>':'')+
+         '<span class="nm">'+esc(k.name)+'</span>'+(viewedTree(f)?'<span class="dotc" title="Changed since you marked it viewed">◆</span>':'')+(nc?'<span class="cmc" title="'+nc+' open note'+(nc>1?'s':'')+'">● '+nc+'</span>':'')+
          '<span class="ct"><span class="ad">+'+f.add+'</span> <span class="dl">−'+f.del+'</span></span></a>';
       continue;
     }
@@ -965,9 +1031,12 @@ function reveal(e,side,L){
   }
 }
 function cardHtml(c,p){
-  return '<div class="cmt'+(c.resolved?' res':'')+'" data-cid="'+c.id+'"><div class="cmh"><b>'+(c.resolved?'✓ Resolved':'Note')+'</b>'+
+  const ai=c.author==='claude';
+  return '<div class="cmt'+(c.resolved?' res':'')+(ai?' ai':'')+'" data-cid="'+c.id+'"><div class="cmh">'+(c.resolved?'<b>✓ Resolved</b>':ai?'<span class="by">✦ Claude</span>':'<b>Note</b>')+
+    (c.severity&&!c.resolved?'<span class="sev sev-'+c.severity+'">'+c.severity+'</span>':'')+
     '<span class="cml">'+(p.ok?locTxt(p.line,p.end,c.side):'outdated · was '+locTxt(c.line,c.end,c.side))+'</span><span class="sum">'+esc(c.text.split('\n')[0])+'</span>'+
     '<span class="ag" title="'+escA(new Date(c.updated||c.created).toLocaleString())+'">'+ago(c.updated||c.created)+'</span><span class="sp"></span>'+
+    (!c.resolved&&baseWT?'<button class="lnk" data-a="fixai" title="Let Claude edit the code to address this note">✦ Fix with Claude</button>':'')+
     '<button class="lnk" data-a="edit">Edit</button><button class="lnk" data-a="'+(c.resolved?'reopen':'resolve')+'">'+(c.resolved?'Reopen':'Resolve')+'</button><button class="lnk" data-a="del">Delete</button></div>'+
     '<div class="cmb">'+mdLite(c.text)+'</div></div>';
 }
@@ -1038,6 +1107,7 @@ filesEl.addEventListener('click',ev=>{
   const card=b.closest('.cmt'),c=card&&CM.find(x=>x.id===card.dataset.cid);if(!c)return;
   if(a==='edit'){const prev=draft&&draft.path;draft={...c,focus:true};if(prev)rerender(new Set([prev]));rerender(new Set([c.path]))}
   else if(a==='del'){if(confirm('Delete this note?'))cmDo('delete',[c.id])}
+  else if(a==='fixai')startAgent('fix',[c.id]);
   else cmDo(a,[c.id]);
 });
 filesEl.addEventListener('input',ev=>{if(draft&&ev.target.matches('.cme textarea'))draft.text=ev.target.value});
@@ -1057,14 +1127,14 @@ function rvToggle(v){
 function rvRender(){
   const open=cmOpen().length,res=CM.length-open,list=CM.filter(c=>showRes||!c.resolved);
   $('rvHd').textContent='Review notes · '+open+' open'+(res?' · '+res+' resolved':'');
-  $('rvShow').checked=showRes;$('rvCopy').disabled=!open;$('rvResAll').disabled=!open;$('rvClear').disabled=!res;
+  $('rvShow').checked=showRes;$('rvCopy').disabled=!open;$('rvFix').disabled=!open||!baseWT;$('rvResAll').disabled=!open;$('rvClear').disabled=!res;
   if(!list.length){$('rvList').innerHTML='<div class="empty">'+(CM.length?'No open notes — all resolved.':'No notes yet.')+'<br><br>Click or drag line numbers to select code, then press <kbd>m</kbd> (or “Add note”).<br>Notes stick to the code they quote, even as the file changes.</div>';return}
   const by=new Map();for(const c of list){if(!by.has(c.path))by.set(c.path,[]);by.get(c.path).push(c)}
   let h='';
   for(const [p,cs] of by){
     const inDiff=order.some(e=>onSide(e.f,cs[0].side,p));
     h+='<div class="grp" title="'+escA(p)+'">'+esc(p)+(inDiff?'':' <span style="color:var(--mut);font-weight:400">(not in this diff)</span>')+'</div>';
-    for(const c of cs)h+='<div class="it'+(c.resolved?' res':'')+'" data-cid="'+c.id+'"><div class="cmh"><span class="cml">'+locTxt(c.line,c.end,c.side)+'</span><span class="sp"></span><span>'+(c.resolved?'✓ resolved · ':'')+ago(c.updated||c.created)+'</span></div><div class="tx">'+esc(c.text)+'</div></div>';
+    for(const c of cs)h+='<div class="it'+(c.resolved?' res':'')+(c.author==='claude'?' ai':'')+'" data-cid="'+c.id+'"><div class="cmh">'+(c.author==='claude'?'<span class="by">✦ Claude</span>':'')+(c.severity&&!c.resolved?'<span class="sev sev-'+c.severity+'">'+c.severity+'</span>':'')+'<span class="cml">'+locTxt(c.line,c.end,c.side)+'</span><span class="sp"></span><span>'+(c.resolved?'✓ resolved · ':'')+ago(c.updated||c.created)+'</span></div><div class="tx">'+esc(c.text)+'</div></div>';
   }
   $('rvList').innerHTML=h;
 }
@@ -1073,6 +1143,7 @@ $('rvClose').onclick=()=>rvToggle(false);
 $('brv').onclick=()=>rvToggle();
 $('rvShow').onchange=ev=>{showRes=ev.target.checked;setPref('showres',showRes);rvRender();rerender(new Set(CM.map(c=>c.path)))};
 $('rvCopy').onclick=copyReview;
+$('rvFix').onclick=()=>startAgent('fix',['all']);
 $('rvResAll').onclick=()=>{if(confirm('Mark all '+cmOpen().length+' open notes resolved?'))cmDo('resolve',['all'])};
 $('rvClear').onclick=()=>{if(confirm('Delete all resolved notes?'))cmDo('clear')};
 async function copyReview(){
@@ -1141,6 +1212,12 @@ $('cms').addEventListener('click',ev=>{
 function commitHead(){
   const el=$('chead');if(!qs.has('from')){el.style.display='none';return}
   const [i1,i0]=cIdx();let h;
+  if(curC==='snap'){
+    const a=TL.find(s=>s.tree===qs.get('s0')),b=qs.get('s1')&&TL.find(s=>s.tree===qs.get('s1'));
+    h='<div class="t">'+(a?'Changes since '+hms(a.at)+(a.label?' — '+esc(a.label):''):'Changes since snapshot')+'</div><div class="m"><span>'+
+      (b?'to the snapshot at '+hms(b.at)+(b.label?' — '+esc(b.label):''):'→ working tree (live)')+'</span><span class="sp"></span><button class="btn" data-n="all">All changes</button></div>';
+    el.innerHTML=h;el.style.display='block';return;
+  }
   if(curC==='wt')h='<div class="t">Uncommitted changes</div><div class="m"><span>HEAD → working tree</span>';
   else if(i1<0)h='<div class="t">'+esc(curC||'')+'</div><div class="m">';
   else if(i0===i1){const c=COMMITS[i1];
@@ -1186,6 +1263,8 @@ function fzHl(s,q){
 function palAll(){
   const act=(l,h,run)=>({k:'action',l,h,run}),L=[];
   if(qs.has('from'))L.push(act('Back to all changes','',viewBase));
+  L.push(act('Ask Claude to review this diff','',()=>startAgent('review')));
+  if(baseWT&&cmOpen().length)L.push(act('Ask Claude to fix all open notes ('+cmOpen().length+')','',()=>startAgent('fix',['all'])));
   L.push(act('Copy review notes for Claude','',copyReview),act('Open review notes','r',()=>rvToggle(true)));
   L.push(act(mode==='s'?'Unified view':'Split view','s',()=>setMode(mode==='s'?'u':'s')),
     act(wrap?'Don’t wrap long lines':'Wrap long lines','w',()=>setWrap(!wrap)),
@@ -1199,6 +1278,7 @@ function palAll(){
   if(D&&D.onto&&D.branch)L.push(act('Fetch & rebase onto '+D.onto,'',()=>$('br').click()));
   for(const o of $('theme').options)L.push({k:'theme',l:'Theme: '+o.text,run:()=>{$('theme').value=o.value;$('theme').dispatchEvent(new Event('change'))}});
   order.forEach((e,i)=>L.push({k:'file',l:fpath(e.f),h:'+'+e.f.add+' −'+e.f.del,run:()=>{e.sec.classList.remove('collapsed','hid');go(i)}}));
+  for(let i=TL.length-1;i>=0;i--){const s=TL[i];L.push({k:'snapshot',l:'Changes since '+hms(s.at)+(s.label?' — '+s.label:''),h:agoS(s.at),run:()=>viewSnap(s,null)})}
   for(const c of COMMITS)L.push({k:'commit',l:c.short+'  '+c.subject,h:agoS(c.at*1000),run:()=>viewCommits(c,c)});
   for(const c of CM)L.push({k:'note',l:c.path+':'+c.line+'  '+c.text.split('\n')[0],h:c.resolved?'resolved':'',run:()=>jumpTo(c)});
   return L;
@@ -1227,6 +1307,123 @@ $('palIn').addEventListener('keydown',ev=>{
 $('palL').addEventListener('mousedown',ev=>{ev.preventDefault();const d=ev.target.closest('[data-i]');if(d)palRun(+d.dataset.i)});
 PAL.addEventListener('mousedown',ev=>{if(ev.target===PAL)palClose()});
 $('bk').onclick=palOpen;
+
+// ---- session timeline: snapshots of the working tree, taken whenever it changes ----
+let TL=[];
+const hms=ms=>new Date(ms).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+async function loadTimeline(){
+  if(!baseWT)return;
+  try{const r=await fetch('/api/timeline',{cache:'no-store'});if(!r.ok)return;TL=await r.json()||[]}catch(_){return}
+  renderTimeline();if(curC==='snap')commitHead();
+}
+function viewSnap(older,newer){ // newer null → live working tree
+  const p=new URLSearchParams({a:older.tree,b:newer?newer.tree:'@wt',from:BASE.toString(),c:'snap',s0:older.tree});
+  if(newer)p.set('s1',newer.tree);
+  location.search=p.toString();
+}
+function renderTimeline(){
+  const el=$('tls');if(!baseWT||!TL.length){el.hidden=true;return}
+  el.hidden=false;el.classList.toggle('cl',!!pref('tlcl',false));
+  const i0=TL.findIndex(s=>s.tree===qs.get('s0')),i1=qs.get('s1')?TL.findIndex(s=>s.tree===qs.get('s1')):TL.length-1;
+  let h='<div class="sh"><span class="car">▾</span>Timeline<span>'+TL.length+'</span></div><div class="clb">';
+  for(let i=TL.length-1;i>=Math.max(0,TL.length-80);i--){
+    const s=TL[i],on=curC==='snap'&&i0>=0&&i>=i0&&i<=i1;
+    const what=s.label||(s.files?s.files+' file'+(s.files>1?'s':'')+' · +'+s.add+' −'+s.del:'snapshot');
+    h+='<div class="ci'+(s.label?' lab':'')+(on?' cur':'')+'" data-t="'+i+'" title="'+escA('Show everything that changed since '+new Date(s.at).toLocaleString()+(s.label?' ('+s.label+')':'')+'\nShift-click another snapshot to compare the two')+'">'+
+       '<span class="tm">'+hms(s.at)+'</span><span class="su">'+esc(what)+'</span><span class="ag">'+agoS(s.at)+'</span></div>';
+  }
+  el.innerHTML=h+'</div>';
+}
+$('tls').addEventListener('click',ev=>{
+  if(ev.target.closest('.sh')){const c=!$('tls').classList.contains('cl');$('tls').classList.toggle('cl',c);setPref('tlcl',c);return}
+  const a=ev.target.closest('.ci');if(!a)return;
+  const i=+a.dataset.t,j=TL.findIndex(s=>s.tree===qs.get('s0'));
+  if(ev.shiftKey&&curC==='snap'&&j>=0&&j!==i)return viewSnap(TL[Math.min(i,j)],TL[Math.max(i,j)]);
+  viewSnap(TL[i],null);
+});
+
+// ---- Claude agents: review this diff (notes appear live) / fix notes (edits appear live) ----
+let AG=[],agOpen=false,agDismissed=LS.get('rd.agdis','');
+const lastAg=()=>AG[AG.length-1];
+async function loadAgents(){
+  try{const r=await fetch('/api/agent',{cache:'no-store'});if(!r.ok)return;AG=await r.json()||[]}catch(_){return}
+  renderAgent();
+}
+let agT=0;
+function agSoon(){if(!agT)agT=setTimeout(()=>{agT=0;loadAgents()},200)}
+const fmtDur=s=>s<60?s+'s':Math.floor(s/60)+'m '+String(s%60).padStart(2,'0')+'s';
+function renderAgent(){
+  const a=lastAg(),run=!!a&&a.status==='running',btn=$('bai');
+  btn.classList.toggle('run',run);btn.innerHTML=run?'<span class="spin"></span>Claude working…':'✦ Claude';
+  const el=$('ag');if(!a||(a.id===agDismissed&&!run)){el.hidden=true;return}
+  el.hidden=false;
+  const icon=run?'<span class="spin"></span>':a.status==='done'?'<span class="okc">✓</span>':a.status==='stopped'?'<span>■</span>':'<span class="badc">✕</span>';
+  const dur=Math.max(0,Math.round(((a.ended||Date.now())-a.started)/1000));
+  $('agHd').innerHTML=icon+'<b title="'+escA(a.title)+'">'+esc(a.title)+'</b><span class="st2">'+(run?'working':a.status)+' · '+fmtDur(dur)+(a.cost?' · $'+a.cost.toFixed(2):'')+'</span><button class="x" data-g="dismiss" title="'+(run?'Hide (keeps running)':'Dismiss')+'">✕</button>';
+  const log=a.log.filter(l=>l.kind!=='info'),shown=agOpen?log:log.slice(-7);
+  $('agLog').innerHTML=(log.length>shown.length?'<div class="more" data-g="more">… '+(log.length-shown.length)+' earlier steps</div>':'')+
+    (shown.length?shown.map(l=>'<div class="'+l.kind+'" title="'+escA(l.text)+'">'+esc(l.text.length>400?l.text.slice(0,400)+'…':l.text)+'</div>').join(''):'<div>Starting Claude Code…</div>');
+  $('agLog').scrollTop=1e9;
+  $('agSum').hidden=run||!a.summary;$('agSum').innerHTML=a.summary?mdLite(a.summary):'';
+  let b='';
+  if(run)b+='<button class="btn" data-g="stop">Stop</button>';
+  else if(a.kind==='fix'){
+    const left=(a.notes||[]).filter(id=>CM.some(c=>c.id===id&&!c.resolved)).length;
+    if(a.before)b+='<button class="btn ok" data-g="changes">View Claude’s changes</button>';
+    b+='<span style="color:var(--mut)">'+((a.notes||[]).length-left)+' of '+(a.notes||[]).length+' notes resolved</span>';
+  }else{
+    const mine=CM.filter(c=>c.author==='claude'&&!c.resolved&&c.created>=a.started);
+    b+='<button class="btn ok" data-g="notes">'+mine.length+' note'+(mine.length===1?'':'s')+' from Claude</button>';
+    if(mine.length&&baseWT)b+='<button class="btn" data-g="fixai">✦ Fix them with Claude</button>';
+  }
+  $('agAct').innerHTML=b;
+}
+setInterval(()=>{const a=lastAg();if(a&&a.status==='running')renderAgent()},1000);
+$('ag').addEventListener('click',ev=>{
+  const g=ev.target.closest('[data-g]');if(!g)return;const a=lastAg();if(!a)return;
+  switch(g.dataset.g){
+    case 'dismiss':agDismissed=a.id;LS.set('rd.agdis',a.id);renderAgent();break;
+    case 'more':agOpen=true;renderAgent();break;
+    case 'stop':fetch('/api/agent/stop',{method:'POST',headers:{'X-Refdiff':'1'}});break;
+    case 'changes':viewSnap({tree:a.before},null);break;
+    case 'notes':rvToggle(true);break;
+    case 'fixai':startAgent('fix',CM.filter(c=>c.author==='claude'&&!c.resolved&&c.created>=a.started).map(c=>c.id));break;
+  }
+});
+async function startAgent(kind,ids){
+  if(kind==='fix'){
+    const n=ids[0]==='all'?cmOpen().length:ids.length;
+    if(!confirm('Let Claude edit files in your working tree to address '+n+' note'+(n===1?'':'s')+'?\n\nA snapshot is taken first; afterwards “View Claude’s changes” shows exactly what it did.'))return;
+  }
+  const p=new URLSearchParams(kind==='review'?qs:BASE);for(const k of ['from','c','c0','s0','s1'])p.delete(k);
+  p.set('kind',kind);for(const i of ids||[])p.append('id',i);
+  try{
+    const r=await fetch('/api/agent/start?'+p,{method:'POST',headers:{'X-Refdiff':'1'}});
+    if(!r.ok)throw new Error(await r.text());
+    agDismissed='';LS.set('rd.agdis','');agOpen=false;await loadAgents();
+    toast(true,kind==='review'?'Claude is reviewing — notes appear as it finds issues.':'Claude is working on the notes — watch the diff change.');
+  }catch(err){toast(false,String(err.message||err).trim())}
+}
+const CMENU=$('cmenu');
+function cmenuOpen(){
+  const a=lastAg(),run=!!a&&a.status==='running',n=cmOpen().length;
+  CMENU.innerHTML='<button data-m="review"'+(run?' disabled':'')+'>✦ Review this diff<small>'+esc(describeView())+' — notes appear live</small></button>'+
+    '<button data-m="fix"'+(run||!n||!baseWT?' disabled':'')+'>✦ Fix all open notes ('+n+')<small>'+(baseWT?'Claude edits your working tree; snapshot first':'Only for working-tree diffs')+'</small></button>'+
+    (a?'<button data-m="show">Show '+(run?'progress':'last run')+'<small>'+esc(a.title)+' · '+a.status+'</small></button>':'')+
+    (run?'<button data-m="stop">Stop Claude</button>':'');
+  const rc=$('bai').getBoundingClientRect();CMENU.hidden=false;
+  CMENU.style.top=(rc.bottom+6)+'px';CMENU.style.left=Math.max(8,Math.min(rc.left,innerWidth-CMENU.offsetWidth-8))+'px';
+}
+const describeView=()=>D?(D.a||'')+' → '+(D.staged?'index':(D.b==='@wt'?'working tree':(D.b||'working tree'))):'';
+$('bai').onclick=ev=>{ev.stopPropagation();if(CMENU.hidden)cmenuOpen();else CMENU.hidden=true};
+CMENU.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-m]');if(!b||b.disabled)return;CMENU.hidden=true;
+  const m=b.dataset.m;
+  if(m==='review')startAgent('review');else if(m==='fix')startAgent('fix',['all']);
+  else if(m==='show'){agDismissed='';LS.set('rd.agdis','');renderAgent()}
+  else if(m==='stop')fetch('/api/agent/stop',{method:'POST',headers:{'X-Refdiff':'1'}});
+});
+addEventListener('mousedown',ev=>{if(!CMENU.hidden&&!ev.target.closest('#cmenu')&&!ev.target.closest('#bai'))CMENU.hidden=true});
 
 // ---- apply data ----
 function apply(d){
@@ -1277,6 +1474,8 @@ function live(){
   const es=new EventSource(api('/api/events'));
   es.addEventListener('v',ev=>{if(ev.data!==ver)load()});
   es.addEventListener('c',ev=>{if(ev.data!==cmStamp)loadComments()});
+  es.addEventListener('a',agSoon);
+  es.addEventListener('t',()=>loadTimeline());
   es.onopen=()=>{$('live').classList.add('on');$('live').lastChild.textContent='live'};
   es.onerror=()=>{$('live').classList.remove('on');$('live').lastChild.textContent='offline'};
 }
@@ -1395,7 +1594,7 @@ addEventListener('keydown',ev=>{
 });
 
 $('mu').classList.toggle('on',mode==='u');$('ms').classList.toggle('on',mode==='s');setWrap(wrap);$('bh').classList.toggle('on',syntax);$('bh').hidden=!HL;
-cmCount();loadCommits();
+cmCount();loadCommits();loadTimeline();loadAgents();
 load().then(live);
 })();
 </script>

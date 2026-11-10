@@ -10,6 +10,7 @@ refdiff A B                A vs B   (A..B / A...B also work)
 refdiff --staged           index vs HEAD
 refdiff --no-untracked     hide untracked files (shown by default for working-tree diffs)
 refdiff comments           print open review notes as a prompt (--json, --resolve <id>, --all, --clear)
+refdiff comments --add src/x.go:10-12 -- 'note'   add a note from the command line (what agents use)
 refdiff --help
 ```
 
@@ -21,6 +22,17 @@ refdiff --help
   `refdiff comments --resolve <id>` marks one done; the open page updates live.
 - **Commits**: the sidebar lists the commits in the compared range. Click one to see only that commit, shift-click
   to see a range, or pick "Uncommitted changes". Use `[` and `]` to step older or newer.
+- **Claude in the loop** (needs the `claude` CLI). From "✦ Claude":
+  - *Review this diff* runs Claude Code headless in the repo. It can read files and run `git diff/log/show`, and it
+    posts notes with `refdiff comments --add`, so they appear on the diff as it finds issues. Each note has a severity.
+  - *Fix notes* (all open notes, Claude's own, or "✦ Fix with Claude" on a single note) lets it edit the working
+    tree. It may only Read, Edit and Write; `rm`, `mv` and shell commands are denied. It resolves each note as it goes, or
+    replies when it disagrees. Pass `--agent-allow "Bash(go test:*)"` so it can run your tests.
+  - A dock streams its tool calls, cost and summary; "View Claude's changes" diffs the pre-run snapshot against now.
+- **Timeline**: whenever the working tree changes, refdiff snapshots it as a git tree, using a private index so your
+  real index is untouched. The snapshots are listed in `.git/refdiff/timeline.json`. Click one to see everything that changed since then (live),
+  or shift-click two to compare them. Files you marked viewed and that changed afterwards get a
+  "changed since viewed" button that shows only the new edits.
 - **Palette**: `⌘K` or `t` jumps to files, commits and notes, and runs actions such as views, themes and untracked.
 - Untracked files (badge `U`), word-level change highlighting, file tree with viewed progress.
 

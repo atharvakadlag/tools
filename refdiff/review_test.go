@@ -71,3 +71,31 @@ func TestCommentAnchorsAfterEdit(t *testing.T) {
 		t.Fatalf("anchor of removed code = %d, want 0", got)
 	}
 }
+
+func TestAddCommentAndSnapshotDiff(t *testing.T) {
+	dir := newRepo(t)
+	c, err := addComment("a.go:2-3", "", "claude", "high", false, "check this")
+	if err != nil || c.Author != "claude" || c.Severity != "high" || strings.Join(c.Code, ",") != "two,three" {
+		t.Fatalf("addComment = %+v, %v", c, err)
+	}
+	if _, err := addComment("a.go:9", "", "", "", false, "x"); err == nil {
+		t.Fatal("expected out-of-range line to fail")
+	}
+	before, err := recordSnapshot("before")
+	if err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(filepath.Join(dir, "a.go"), []byte("one\nTWO\nthree\n"), 0o644)
+	os.WriteFile(filepath.Join(dir, "u.txt"), []byte("new\n"), 0o644)
+	files, _, err := runDiff(Query{A: before.Tree, B: wtSnap})
+	if err != nil || len(files) != 2 || files[0].New != "a.go" || files[1].New != "u.txt" || files[1].St != "A" {
+		t.Fatalf("snapshot diff = %+v, %v", files, err)
+	}
+	if out, _ := exec.Command("git", "-C", dir, "status", "--porcelain").Output(); !strings.Contains(string(out), "?? u.txt") {
+		t.Fatalf("snapshot touched the real index: %s", out)
+	}
+	after, _ := recordSnapshot("")
+	if after.Tree == before.Tree || after.Files != 2 || after.Add != 2 || after.Del != 1 {
+		t.Fatalf("after = %+v", after)
+	}
+}

@@ -103,6 +103,8 @@ type Comment struct {
 	Code     []string `json:"code"` // the commented lines, used to re-anchor after edits
 	Text     string   `json:"text"`
 	Branch   string   `json:"branch,omitempty"`
+	Author   string   `json:"author,omitempty"`   // "" = you; "claude" for notes an agent left
+	Severity string   `json:"severity,omitempty"` // high | medium | low (agent notes)
 	Created  int64    `json:"created"`
 	Updated  int64    `json:"updated"`
 	Resolved bool     `json:"resolved,omitempty"`
@@ -165,6 +167,9 @@ func upsertComment(c Comment) (*Comment, error) {
 	}
 	if c.End < c.Line {
 		c.End = c.Line
+	}
+	if c.Severity != "" && c.Severity != "high" && c.Severity != "medium" && c.Severity != "low" {
+		c.Severity = ""
 	}
 	if len(c.Code) > 200 {
 		c.Code = c.Code[:200]
@@ -316,6 +321,12 @@ func commentsMarkdown(list []*Comment, all bool) string {
 		if c.Resolved {
 			status = " [resolved]"
 		}
+		if c.Author != "" {
+			status += " — from " + c.Author
+			if c.Severity != "" {
+				status += ", " + c.Severity
+			}
+		}
 		fmt.Fprintf(&b, "\n## %d. `%s` (id `%s`, %s%s)%s\n\n", i+1, loc, c.ID, where, note, status)
 		if len(c.Code) > 0 {
 			fmt.Fprintf(&b, "```%s\n%s\n```\n\n", mdLang[strings.ToLower(filepath.Ext(c.Path))], strings.Join(c.Code, "\n"))
@@ -335,6 +346,8 @@ Print the review comments left in the refdiff page for this repo (open ones, as 
   --reopen <id>...   mark comments unresolved
   --delete <id>...   delete comments
   --clear            delete all resolved comments
+  --add <path>:<line>[-<end>] [--old] [--rev R] [--author A] [--severity high|medium|low] -- <text>
+                     add a note (line numbers in the working tree, or in R / old side with --old)
   -C <dir>           run in <dir>
 `
 
@@ -342,8 +355,41 @@ func commentsCmd(args []string) {
 	all, asJSON := false, false
 	var action string
 	var ids []string
+	var add struct {
+		spec, rev, author, severity string
+		old                         bool
+		text                        []string
+	}
+	val := func(i *int, name string) string {
+		if *i++; *i >= len(args) {
+			die("%s needs a value", name)
+		}
+		return args[*i]
+	}
 	for i := 0; i < len(args); i++ {
+		if action == "--add" {
+			switch a := args[i]; {
+			case a == "--":
+				add.text = append(add.text, args[i+1:]...)
+				i = len(args)
+			case a == "--old":
+				add.old = true
+			case a == "--rev":
+				add.rev = val(&i, a)
+			case a == "--author":
+				add.author = val(&i, a)
+			case a == "--severity":
+				add.severity = val(&i, a)
+			case add.spec == "":
+				add.spec = a
+			default:
+				add.text = append(add.text, a)
+			}
+			continue
+		}
 		switch a := args[i]; a {
+		case "--add":
+			action = a
 		case "-h", "--help":
 			fmt.Print(commentsUsage)
 			return
@@ -374,6 +420,13 @@ func commentsCmd(args []string) {
 	var n int
 	var err error
 	switch action {
+	case "--add":
+		c, err := addComment(add.spec, add.rev, add.author, add.severity, add.old, strings.Join(add.text, " "))
+		if err != nil {
+			die("%v", err)
+		}
+		fmt.Printf("added note %s at %s:%d\n", c.ID, c.Path, c.Line)
+		return
 	case "":
 		list := loadComments()
 		if asJSON {

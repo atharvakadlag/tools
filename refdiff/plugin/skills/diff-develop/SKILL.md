@@ -32,6 +32,14 @@ refdiff comments --json     # same, structured
 refdiff comments --resolve <id> [<id>...]   # mark a note done after addressing it (page updates live)
 ```
 
+To leave your own review notes in the page, so the user sees them inline:
+
+```bash
+refdiff comments --add <path>:<line>[-<end>] --author claude --severity <high|medium|low> -- '<note>'
+```
+
+The page can also start Claude itself, to review the diff or fix notes, from its "✦ Claude" menu.
+
 Use the `refdiff` binary the start script found (on PATH or `~/.cache/refdiff/<version>/refdiff`). Run it inside the repo.
 
 ## Stop
