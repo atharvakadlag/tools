@@ -99,3 +99,51 @@ func TestAddCommentAndSnapshotDiff(t *testing.T) {
 		t.Fatalf("after = %+v", after)
 	}
 }
+
+func TestSemanticDiff(t *testing.T) {
+	old := []byte("package p\n\nfunc keep() int { return 1 }\n\nfunc gone() {}\n\nfunc oldName(a int) int {\n\treturn a * 2\n}\n\ntype T struct{}\n\nfunc (t *T) M(x int) {}\n")
+	new := []byte("package p\n\nfunc keep() int { return 2 }\n\nfunc newName(a int) int {\n\treturn a * 2\n}\n\ntype T struct{}\n\nfunc (t *T) M(x, y int) {}\n\nfunc added() {\n\tf := func() {}\n\t_ = f\n}\n")
+	f := &File{Old: "p.go", New: "p.go", St: "M", Hunks: []*Hunk{{OS: 1, NS: 1, L: diffLines(old, new)}}}
+	got := map[string]SymChange{}
+	for _, c := range semanticDiff(f, old, new) {
+		got[c.Change+" "+c.Qual+"."+c.Name] = c
+	}
+	for _, want := range []string{"modified .keep", "removed .gone", "renamed .newName", "modified T.M", "added .added"} {
+		if _, ok := got[want]; !ok {
+			t.Errorf("missing %q in %v", want, got)
+		}
+	}
+	if got["modified .keep"].Sig {
+		t.Error("one-line body change reported as a signature change")
+	}
+	if !got["modified T.M"].Sig || got["renamed .newName"].From != "oldName" {
+		t.Errorf("sig/rename details wrong: %+v %+v", got["modified T.M"], got["renamed .newName"])
+	}
+	if len(got) != 5 {
+		t.Errorf("want 5 changes (no closure locals), got %v", got)
+	}
+}
+
+// diffLines is a crude whole-file "diff" (all old lines removed, all new added) — enough for
+// the semantic pass, which only needs to know which lines changed.
+func diffLines(old, new []byte) []string {
+	var l []string
+	for _, s := range strings.Split(strings.TrimSuffix(string(old), "\n"), "\n") {
+		l = append(l, "-"+s)
+	}
+	for _, s := range strings.Split(strings.TrimSuffix(string(new), "\n"), "\n") {
+		l = append(l, "+"+s)
+	}
+	return l
+}
+
+func TestGoCoverage(t *testing.T) {
+	dir := newRepo(t)
+	os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module example.com/m\n"), 0o644)
+	exec.Command("git", "-C", dir, "add", "go.mod").Run()
+	d := &covData{Lines: map[string]map[int]bool{}}
+	parseGoCover([]byte("mode: set\nexample.com/m/a.go:1.1,2.5 2 1\nexample.com/m/a.go:3.1,3.9 1 0\n"), d)
+	if !d.Lines["a.go"][1] || !d.Lines["a.go"][2] || d.Lines["a.go"][3] {
+		t.Fatalf("lines = %v", d.Lines)
+	}
+}

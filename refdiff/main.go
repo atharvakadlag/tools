@@ -60,8 +60,9 @@ type File struct {
 	Del   int     `json:"del"`
 	OB    string  `json:"ob,omitempty"` // old/new blob ids (from the "index" line), for whole-file highlighting
 	NB    string  `json:"nb,omitempty"`
-	WT    bool    `json:"wt,omitempty"` // new side is the working tree (its blob isn't in the object store)
-	Untr  bool    `json:"u,omitempty"`  // untracked file (synthesized as an addition)
+	WT    bool    `json:"wt,omitempty"`  // new side is the working tree (its blob isn't in the object store)
+	Untr  bool    `json:"u,omitempty"`   // untracked file (synthesized as an addition)
+	Gen   bool    `json:"gen,omitempty"` // marked linguist-generated / linguist-vendored in .gitattributes
 	Hunks []*Hunk `json:"hunks"`
 }
 
@@ -69,11 +70,12 @@ type Query struct {
 	A, B      string
 	Staged    bool
 	Untracked bool // include untracked files (working-tree comparisons only)
+	WS        bool // ignore whitespace changes
 	Paths     []string
 }
 
 func (q Query) key() string {
-	return fmt.Sprintf("%q|%q|%v|%v|%q", q.A, q.B, q.Staged, q.untracked(), q.Paths)
+	return fmt.Sprintf("%q|%q|%v|%v|%v|%q", q.A, q.B, q.Staged, q.untracked(), q.WS, q.Paths)
 }
 
 // untracked reports whether untracked files are part of this diff.
@@ -91,6 +93,9 @@ func (q Query) values() url.Values {
 	if q.Untracked {
 		v.Set("u", "1")
 	}
+	if q.WS {
+		v.Set("w", "1")
+	}
 	for _, p := range q.Paths {
 		v.Add("p", p)
 	}
@@ -98,7 +103,7 @@ func (q Query) values() url.Values {
 }
 
 func queryFrom(v url.Values) (Query, error) {
-	q := Query{A: v.Get("a"), B: v.Get("b"), Staged: v.Get("staged") == "1", Untracked: v.Get("u") == "1", Paths: v["p"]}
+	q := Query{A: v.Get("a"), B: v.Get("b"), Staged: v.Get("staged") == "1", Untracked: v.Get("u") == "1", WS: v.Get("w") == "1", Paths: v["p"]}
 	if strings.HasPrefix(q.A, "-") || strings.HasPrefix(q.B, "-") {
 		return q, errors.New("refs may not start with '-'")
 	}
@@ -137,7 +142,7 @@ func diffArgs(q Query) []string {
 	args := []string{"-c", "core.quotePath=false", "diff", "--no-color", "--no-ext-diff", "-M",
 		"--full-index",
 		"--src-prefix=a/", "--dst-prefix=b/", "-U" + strconv.Itoa(optContext)}
-	if optWS {
+	if optWS || q.WS {
 		args = append(args, "-w")
 	}
 	if q.Staged {
@@ -317,6 +322,42 @@ func blobID(id string) string {
 }
 
 func runDiff(q Query) ([]*File, uint64, error) {
+	files, sum, err := runDiffRaw(q)
+	if err == nil {
+		markGenerated(files)
+	}
+	return files, sum, err
+}
+
+// markGenerated flags files .gitattributes marks linguist-generated or linguist-vendored.
+func markGenerated(files []*File) {
+	if len(files) == 0 {
+		return
+	}
+	var in bytes.Buffer
+	for _, f := range files {
+		in.WriteString(filePath(f))
+		in.WriteByte(0)
+	}
+	cmd := exec.Command("git", "-C", repoRoot, "check-attr", "-z", "--stdin", "linguist-generated", "linguist-vendored")
+	cmd.Stdin = &in
+	out, err := cmd.Output()
+	if err != nil {
+		return
+	}
+	gen := map[string]bool{}
+	parts := strings.Split(string(out), "\x00")
+	for i := 0; i+2 < len(parts); i += 3 {
+		if v := parts[i+2]; v == "set" || v == "true" {
+			gen[parts[i]] = true
+		}
+	}
+	for _, f := range files {
+		f.Gen = gen[filePath(f)]
+	}
+}
+
+func runDiffRaw(q Query) ([]*File, uint64, error) {
 	if q.B == wtSnap { // snapshot (tree) → working tree: diff two trees, so untracked files count and every blob exists
 		tree, err := snapshotTree()
 		if err != nil {
@@ -481,6 +522,7 @@ func fingerprint(q Query) string {
 
 type watcher struct {
 	q       Query
+	files   []*File // last diff (for the change map)
 	mu      sync.Mutex
 	fp      string
 	hash    uint64
@@ -563,9 +605,10 @@ func (w *watcher) refresh() {
 	}
 	w.hash = sum
 	w.ver++
+	w.files = files
 	p := map[string]any{
 		"ver": verStr(w.ver), "repo": filepath.Base(repoRoot), "a": w.q.A, "b": w.q.B, "staged": w.q.Staged,
-		"paths": w.q.Paths, "untracked": w.q.untracked(), "wt": w.q.worktree() && !w.q.Staged && w.q.B != wtSnap, "aSha": shortSha(w.q.A), "bSha": shortSha(w.q.B), "ms": ms,
+		"paths": w.q.Paths, "untracked": w.q.untracked(), "wt": w.q.worktree() && !w.q.Staged && w.q.B != wtSnap, "aSha": shortSha(w.q.A), "bSha": shortSha(w.q.B), "ms": ms, "ws": w.q.WS || optWS,
 		"at": time.Now().UnixMilli(), "cmd": "git " + strings.Join(diffArgs(w.q)[2:], " "),
 	}
 	if err != nil {
@@ -801,7 +844,7 @@ func serve(ln net.Listener) error {
 		ct := time.NewTicker(400 * time.Millisecond) // comments/agents/timeline change outside this page too
 		defer ct.Stop()
 		stamp := commentsStamp()
-		av, tv := int64(-1), int64(-1)
+		av, tv, cs := int64(-1), int64(-1), covStamp()
 		fmt.Fprintf(rw, "event: c\ndata: %s\n\n", stamp)
 		fl.Flush()
 		for {
@@ -812,6 +855,11 @@ func serve(ln net.Listener) error {
 				if v := agentVer.Load(); v != av {
 					av = v
 					fmt.Fprintf(rw, "event: a\ndata: %d\n\n", v)
+					fl.Flush()
+				}
+				if s := covStamp(); s != cs {
+					cs = s
+					fmt.Fprintf(rw, "event: cov\ndata: %s\n\n", strconv.Quote(s))
 					fl.Flush()
 				}
 				if v := tlVer.Load(); v != tv {
@@ -1003,6 +1051,21 @@ func serve(ln net.Listener) error {
 		rw.Header().Set("Cache-Control", "no-store")
 		io.WriteString(rw, commentsMarkdown(list, r.URL.Query().Get("all") == "1"))
 	})
+	mux.HandleFunc("/api/semantic", func(rw http.ResponseWriter, r *http.Request) {
+		q, err := queryFrom(r.URL.Query())
+		if err != nil {
+			http.Error(rw, err.Error(), 400)
+			return
+		}
+		w := getWatcher(q)
+		<-w.ready
+		w.mu.Lock()
+		files, ver := w.files, w.ver
+		w.mu.Unlock()
+		start := time.Now()
+		res := semantic(q, files, verStr(ver))
+		writeJSON(rw, map[string]any{"files": res, "ms": time.Since(start).Milliseconds()})
+	})
 	mux.HandleFunc("/api/timeline", func(rw http.ResponseWriter, r *http.Request) {
 		tlMu.Lock()
 		loadTimeline()
@@ -1019,6 +1082,11 @@ func serve(ln net.Listener) error {
 			h(rw, r)
 		})
 	}
+	post("/api/coverage", func(rw http.ResponseWriter, r *http.Request) {
+		var paths []string
+		json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&paths)
+		writeJSON(rw, coverageFor(paths))
+	})
 	post("/api/snapshot", func(rw http.ResponseWriter, r *http.Request) {
 		s, err := recordSnapshot(r.URL.Query().Get("label"))
 		if err != nil {
@@ -1136,6 +1204,8 @@ options:
   -w               ignore whitespace
   --staged         compare index instead of working tree
   --no-untracked   hide untracked files (shown by default in working-tree diffs)
+  --coverage <file>  coverage report to overlay (default: newest of cover.out, coverage.out,
+                   lcov.info, coverage/lcov.info, coverage.json, coverage.xml, … in the repo root)
   --agent-allow <rules>  extra Claude Code permission rules for agents, comma-separated,
                    e.g. "Bash(go test:*),Bash(go vet:*)" so Claude can verify its fixes
   --port <n>       listen port (default: stable per-repo port)
@@ -1187,6 +1257,8 @@ func main() {
 			q.Staged = true
 		case "--no-untracked":
 			q.Untracked = false
+		case "--coverage":
+			optCoverage = next(&i, a)
 		case "--agent-allow":
 			optAgentAllow = append(optAgentAllow, strings.Split(next(&i, a), ",")...)
 		case "--port":

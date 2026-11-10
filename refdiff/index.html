@@ -321,6 +321,59 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
 .chg{flex:none;font-size:11px;color:#d29922;border:1px solid currentColor;border-radius:10px;padding:0 8px;cursor:pointer;background:none;line-height:18px}
 .chg[hidden]{display:none}.chg.on{background:#d29922;color:#fff;border-color:#d29922}
 .dotc{flex:none;color:#d29922;font-size:10px}
+/* ---- reviewing power tools: symbols, coverage, search, moved code, minimap ---- */
+:root{--mv:#8250df;--mvbg:color-mix(in srgb,var(--mv) 13%,transparent);--mvn:color-mix(in srgb,var(--mv) 24%,transparent);--cov:#2da44e;--unc:#e5534b}
+#main{padding-right:28px}
+#stab{display:flex;gap:2px;margin:0 0 6px;padding:2px;border:1px solid var(--bd);border-radius:7px;background:var(--bg)}
+#stab button{flex:1;border:0;background:none;padding:3px 6px;border-radius:5px;cursor:pointer;font-size:12px;color:var(--mut)}
+#stab button.on{background:var(--hh);color:var(--fg);font-weight:600}
+#stab b{font-weight:600;font-size:10.5px;margin-left:3px;color:var(--mut)}#stab b.warn{color:var(--delfg)}
+#syml[hidden],#list[hidden]{display:none}
+#syml .sum{font-size:11.5px;color:var(--mut);padding:2px 4px 8px;line-height:1.6}
+#syml .sum .warn{color:var(--delfg);font-weight:600}
+#syml .sg{font:600 11.5px ui-monospace,Menlo,monospace;color:var(--mut);padding:8px 4px 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+#syml .sy{display:flex;gap:6px;align-items:baseline;padding:2px 6px;border-radius:6px;cursor:pointer;font-size:12.5px}
+#syml .sy:hover{background:var(--bar)}
+#syml .ch{flex:none;width:14px;text-align:center;font:700 12px ui-monospace,Menlo,monospace}
+.c-added{color:var(--addfg)}.c-removed{color:var(--delfg)}.c-modified{color:#d29922}.c-renamed{color:var(--acc)}
+#syml .kd{flex:none;font-size:10px;color:var(--mut);width:42px;overflow:hidden;text-overflow:ellipsis}
+#syml .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px ui-monospace,Menlo,monospace}
+#syml .nm i{font-style:normal;color:var(--mut)}
+#syml .pill{flex:none;font-size:10px;border-radius:8px;padding:0 5px;border:1px solid currentColor;line-height:15px}
+#syml .sig{color:#d29922}#syml .rf{color:var(--acc);cursor:pointer}#syml .rf.warn{color:var(--delfg);font-weight:600}
+#syml .msg{color:var(--mut);font-size:12px;padding:8px 4px;line-height:1.5}
+.gtag{flex:none;font-size:10px;color:var(--mut);border:1px dashed var(--bd);border-radius:8px;padding:0 6px}
+#list a.gen .nm{opacity:.55}
+.covp{flex:none;font:11px ui-monospace,Menlo,monospace;border-radius:8px;padding:0 6px;cursor:pointer}
+.covp[hidden]{display:none}.covp.good{color:var(--cov)}.covp.bad{color:var(--unc)}.covp.mid{color:#d29922}
+#covs{display:flex;gap:6px;align-items:center;font-size:11.5px;margin:-2px 2px 8px;color:var(--mut);cursor:pointer}
+#covs[hidden]{display:none}#covs b{color:var(--fg)}#covs .bad{color:var(--unc);font-weight:600}
+/* coverage gutter: a bar inside the new-side line number */
+td.n.cv1{box-shadow:inset -3px 0 var(--cov)}td.n.cv0{box-shadow:inset -3px 0 var(--unc)}
+tr.unt>td.c.a{background-image:repeating-linear-gradient(135deg,transparent 0 6px,color-mix(in srgb,var(--unc) 9%,transparent) 6px 12px)}
+/* moved code */
+td.c.mv,td.n.mv{background:var(--mvbg)!important}td.n.mv{background:var(--mvn)!important}
+td.c.mv::before{content:"»"!important;color:var(--mv)}td.c.d.mv::before{content:"«"!important}
+.mvl{margin-left:10px;font:10.5px -apple-system,BlinkMacSystemFont,sans-serif;color:var(--mv);cursor:pointer;user-select:none;white-space:nowrap}
+.mvl:hover{text-decoration:underline}
+/* search + change navigation */
+#find{position:fixed;top:56px;right:36px;z-index:20;display:flex;gap:4px;align-items:center;padding:5px 6px;background:var(--bar);border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:12px}
+#find[hidden]{display:none}
+#findIn{width:240px;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);font:12px ui-monospace,Menlo,monospace;outline:none}
+#findIn:focus{border-color:var(--acc)}#findIn.bad{border-color:var(--delfg)}
+#findN{min-width:64px;text-align:center;color:var(--mut);font-variant-numeric:tabular-nums}
+#find .fo{border:1px solid transparent;background:none;border-radius:5px;padding:1px 6px;cursor:pointer;color:var(--mut);font:11px ui-monospace,Menlo,monospace}
+#find .fo.on{border-color:var(--acc);color:var(--acc)}#find .fo:hover{color:var(--fg)}
+tr.fhit>td.c{background-image:linear-gradient(color-mix(in srgb,#d29922 16%,transparent),color-mix(in srgb,#d29922 16%,transparent))}
+mark.fm{background:#d29922;color:#000;border-radius:2px}
+tr.flash>td{animation:rowflash 1.4s ease-out}
+@keyframes rowflash{0%,30%{box-shadow:inset 0 0 0 999px color-mix(in srgb,var(--acc) 28%,transparent)}100%{box-shadow:inset 0 0 0 999px transparent}}
+#list .fh{flex:none;font-size:10.5px;color:#d29922;font-weight:600}
+/* minimap */
+#mm{position:fixed;top:48px;right:0;bottom:0;width:16px;z-index:12;border-left:1px solid var(--bd);background:var(--side);cursor:pointer}
+#mm canvas{position:absolute;inset:0;width:100%;height:100%}
+#mmv{position:absolute;left:0;right:0;background:color-mix(in srgb,var(--fg) 14%,transparent);border-top:1px solid color-mix(in srgb,var(--fg) 30%,transparent);border-bottom:1px solid color-mix(in srgb,var(--fg) 30%,transparent);pointer-events:none}
+@media (max-width:800px){#mm{display:none}#main{padding-right:16px}}
 @media (max-width:800px){#wrap{grid-template-columns:1fr}#side{display:none}#top input.ref{width:90px}#stats{display:none}}
 </style>
 </head>
@@ -352,9 +405,12 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
     <div id="cms" hidden></div>
     <div id="tls" hidden></div>
     <div id="prog"></div>
-    <input id="filter" placeholder="Filter files  ( / )" spellcheck="false">
+    <div id="covs" hidden title="Coverage of the lines this diff adds — click to jump to the next untested line"></div>
+    <div id="stab"><button data-t="files" class="on" title="Files">Files<b id="stF"></b></button><button data-t="syms" title="What changed, by function/type/class (o)">Symbols<b id="stS"></b></button></div>
+    <input id="filter" placeholder="Filter  ( / )   e.g.  api -test *.go is:new" spellcheck="false" title="Space-separated terms must all match; -term excludes; *.ext globs; is:new is:gen is:unviewed is:changed has:note">
     <div id="list"></div>
-    <div id="help"><kbd>⌘K</kbd>/<kbd>t</kbd> palette · <kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>[</kbd>/<kbd>]</kbd> older/newer commit<br><kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>u</kbd> untracked · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter<br><kbd>⌘</kbd>-click: definition · <kbd>⌘⇧</kbd>-click: references<br>click/drag line numbers to select · <kbd>m</kbd> add note · <kbd>c</kbd> copy ref · <kbd>r</kbd> review notes · <kbd>Esc</kbd> clear</div>
+    <div id="syml" hidden></div>
+    <div id="help"><kbd>⌘K</kbd>/<kbd>t</kbd> palette · <kbd>f</kbd> search · <kbd>n</kbd>/<kbd>p</kbd> next/prev change · <kbd>j</kbd>/<kbd>k</kbd> next/prev file · <kbd>o</kbd> symbols · <kbd>W</kbd> whitespace · <kbd>[</kbd>/<kbd>]</kbd> older/newer commit<br><kbd>s</kbd> split · <kbd>w</kbd> wrap · <kbd>h</kbd> syntax · <kbd>u</kbd> untracked · <kbd>v</kbd> viewed · <kbd>x</kbd> collapse · <kbd>/</kbd> filter<br><kbd>⌘</kbd>-click: definition · <kbd>⌘⇧</kbd>-click: references<br>click/drag line numbers to select · <kbd>m</kbd> add note · <kbd>c</kbd> copy ref · <kbd>r</kbd> review notes · <kbd>Esc</kbd> clear</div>
   </nav>
   <aside id="nav" hidden>
   <header><button class="btn" id="nvBack" title="Back">←</button><span id="nvTitle"></span><span class="sp"></span><span id="nvStat"></span><button class="x" id="nvClose" title="Close (Esc)">✕</button></header>
@@ -372,6 +428,8 @@ table.s tr.cmr.n>td{padding-left:calc(50% + 12px)}table.s tr.cmr.o>td{padding-ri
 </div>
 <div id="pal" hidden><div class="bx"><input id="palIn" spellcheck="false" autocomplete="off" placeholder="Jump to a file, commit or note, or run an action…"><div id="palL"></div></div></div>
 <div id="toast" hidden></div>
+<div id="find" hidden><input id="findIn" spellcheck="false" autocomplete="off" placeholder="Search the diff"><span id="findN"></span><button class="fo" id="fCase" title="Match case">Aa</button><button class="fo" id="fRe" title="Regular expression">.*</button><button class="fo" id="fChg" title="Only added/removed lines">±</button><button class="fo" id="fPrev" title="Previous (⇧↵)">↑</button><button class="fo" id="fNext" title="Next (↵)">↓</button><button class="fo" id="fClose" title="Close (Esc)">✕</button></div>
+<div id="mm"><canvas></canvas><div id="mmv"></div></div>
 <div id="cmenu" hidden></div>
 <div id="ag" hidden><div id="agHd"></div><div id="agLog"></div><div id="agSum" hidden></div><div id="agAct"></div></div>
 <script src="/hl.js"></script>
@@ -634,6 +692,8 @@ function make(f){
   const sec=document.createElement('section');sec.className='file';
   sec.innerHTML='<header><button class="tog" title="Collapse (x)">▾</button>'+stBadge(f)+
     '<span class="path" title="Click to copy path">'+pathHtml(f)+(f.sim&&f.st!=='M'?' <span class="arr">('+esc(f.sim)+')</span>':'')+'</span>'+
+    (isGen(f)?'<span class="gtag" title="Generated or vendored file — collapsed by default">generated</span>':'')+
+    '<span class="covp" hidden></span>'+
     '<span class="ct"><span class="ad">+'+f.add+'</span> <span class="dl">−'+f.del+'</span></span>'+
     '<button class="chg" hidden title="This file changed after you marked it viewed — click to see just those changes">changed since viewed</button>'+
     '<label class="vw"><input type="checkbox"> Viewed</label></header><div class="body"></div>';
@@ -643,7 +703,8 @@ function make(f){
   sec.querySelector('.tog').onclick=()=>sec.classList.toggle('collapsed');
   sec.querySelector('.path').onclick=()=>{try{navigator.clipboard.writeText(fpath(f))}catch(_){}};
   e.cb.onchange=()=>setViewed(e,e.cb.checked);
-  if(isViewed(f)){e.cb.checked=true;sec.classList.add('collapsed')}
+  if(isViewed(f)||isGen(f)){e.cb.checked=isViewed(f);sec.classList.add('collapsed')}
+  e.covp=sec.querySelector('.covp');e.covp.onclick=()=>nextUntested(e);
   reset(e);
   return e;
 }
@@ -677,7 +738,7 @@ function render(e){
     s+='</table>';
   }
   e.body.innerHTML=s;e.body.style.height='';e.rendered=true;
-  injectComments(e,placed);dropStaleSel();
+  injectComments(e,placed);decorate(e);dropStaleSel();
 }
 filesEl.addEventListener('click',ev=>{
   const b=ev.target.closest('.exb');if(!b)return;
@@ -727,7 +788,7 @@ function sidebar(){
   const t=$('filter').value.trim().toLowerCase();
   const root={kids:[],m:new Map()};
   order.forEach((e,i)=>{
-    const p=fpath(e.f),hid=!!t&&!p.toLowerCase().includes(t);
+    const p=fpath(e.f),hid=!!t&&!fmatch(e,t);
     e.sec.classList.toggle('hid',hid);if(hid)return;
     const parts=p.split('/');let n=root,acc='';
     for(let k=0;k<parts.length-1;k++){
@@ -741,8 +802,9 @@ function sidebar(){
   const walk=(n,depth)=>{for(const k of n.kids){
     if(k.e){
       const f=k.e.f,nc=cmFor(f).filter(c=>!c.resolved).length;
-      s+='<a data-i="'+k.i+'"'+(isViewed(f)?' class="vd"':'')+' style="padding-left:'+(6+depth*12)+'px" title="'+escA(fpath(f))+'">'+stBadge(f)+
-         '<span class="nm">'+esc(k.name)+'</span>'+(viewedTree(f)?'<span class="dotc" title="Changed since you marked it viewed">◆</span>':'')+(nc?'<span class="cmc" title="'+nc+' open note'+(nc>1?'s':'')+'">● '+nc+'</span>':'')+
+      const fh=SR.by.get(fpath(f));
+      s+='<a data-i="'+k.i+'" class="'+(isViewed(f)?'vd ':'')+(isGen(f)?'gen':'')+'"'+' style="padding-left:'+(6+depth*12)+'px" title="'+escA(fpath(f))+'">'+stBadge(f)+
+         '<span class="nm">'+esc(k.name)+'</span>'+(viewedTree(f)?'<span class="dotc" title="Changed since you marked it viewed">◆</span>':'')+(fh?'<span class="fh" title="Search matches">'+fh.size+'</span>':'')+(nc?'<span class="cmc" title="'+nc+' open note'+(nc>1?'s':'')+'">● '+nc+'</span>':'')+
          '<span class="ct"><span class="ad">+'+f.add+'</span> <span class="dl">−'+f.del+'</span></span></a>';
       continue;
     }
@@ -753,7 +815,7 @@ function sidebar(){
   }};
   walk(root,0);
   listEl.innerHTML=s||(t&&order.length?'<p class="msg">No files match “'+esc(t)+'”.</p>':'');
-  progress();onScroll();
+  progress();onScroll();renderSyms();mmSoon();
 }
 function progress(){
   const n=order.length,v=order.filter(e=>isViewed(e.f)).length,c=cmOpen().length;
@@ -1271,6 +1333,10 @@ function palAll(){
     act(syntax?'Turn off syntax highlighting':'Turn on syntax highlighting','h',()=>setSyntax(!syntax)));
   if(D&&D.wt)L.push(act(D.untracked?'Hide untracked files':'Show untracked files','u',()=>setUntracked(!D.untracked)));
   if(baseWT&&!CRECENT&&curC!=='wt')L.push(act('View uncommitted changes only','',viewUncommitted));
+  L.push(act('Search the diff','f',findOpen),act('Show changed symbols','o',()=>setTab('syms')),
+    act(D&&D.ws?'Show whitespace changes':'Ignore whitespace changes','W',()=>setWS(!(D&&D.ws))),
+    act('Expand generated files','',()=>{for(const e of order)if(isGen(e.f))e.sec.classList.remove('collapsed')}));
+  if(COV&&COV.found)L.push(act('Jump to next untested line','',()=>nextUntested()));
   L.push(act('Collapse all files','',()=>$('bc').click()),act('Expand all files','',()=>$('be').click()),
     act('Mark all files viewed','',()=>{for(const e of order){e.cb.checked=true;setViewed(e,true)}}),
     act('Clear viewed marks','',()=>{for(const e of order){e.cb.checked=false;setViewed(e,false)}}),
@@ -1278,6 +1344,7 @@ function palAll(){
   if(D&&D.onto&&D.branch)L.push(act('Fetch & rebase onto '+D.onto,'',()=>$('br').click()));
   for(const o of $('theme').options)L.push({k:'theme',l:'Theme: '+o.text,run:()=>{$('theme').value=o.value;$('theme').dispatchEvent(new Event('change'))}});
   order.forEach((e,i)=>L.push({k:'file',l:fpath(e.f),h:'+'+e.f.add+' −'+e.f.del,run:()=>{e.sec.classList.remove('collapsed','hid');go(i)}}));
+  for(const sf of SEM)for(const y of sf.syms)L.push({k:'symbol',l:symName(y)+'  '+sf.path,h:y.change,run:()=>jumpSym(sf.path,y)});
   for(let i=TL.length-1;i>=0;i--){const s=TL[i];L.push({k:'snapshot',l:'Changes since '+hms(s.at)+(s.label?' — '+s.label:''),h:agoS(s.at),run:()=>viewSnap(s,null)})}
   for(const c of COMMITS)L.push({k:'commit',l:c.short+'  '+c.subject,h:agoS(c.at*1000),run:()=>viewCommits(c,c)});
   for(const c of CM)L.push({k:'note',l:c.path+':'+c.line+'  '+c.text.split('\n')[0],h:c.resolved?'resolved':'',run:()=>jumpTo(c)});
@@ -1425,6 +1492,356 @@ CMENU.addEventListener('click',ev=>{
 });
 addEventListener('mousedown',ev=>{if(!CMENU.hidden&&!ev.target.closest('#cmenu')&&!ev.target.closest('#bai'))CMENU.hidden=true});
 
+// ---- noise: generated files, whitespace, filter syntax ----
+const GEN_RE=/(^|\/)(package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|go\.sum|Cargo\.lock|poetry\.lock|Pipfile\.lock|uv\.lock|Gemfile\.lock|composer\.lock|Podfile\.lock|mix\.lock|flake\.lock)$|\.min\.(js|css)$|\.map$|\.pb\.go$|_pb2(_grpc)?\.pyi?$|\.pb\.(cc|h)$|_generated\.|\.generated\.|\.g\.dart$|(^|\/)(vendor|node_modules|dist|__snapshots__)\/|\.snap$|(^|\/)\.DS_Store$/;
+const isGen=f=>!!f.gen||GEN_RE.test(fpath(f));
+function setWS(v){const p=new URLSearchParams(qs);if(v)p.set('w','1');else p.delete('w');location.search=p.toString()}
+// Filter: space-separated terms all match; -term/!term excludes; *.go globs; is:new|gen|unviewed|changed|untracked, has:note
+function fmatch(e,t){
+  const p=fpath(e.f).toLowerCase(),f=e.f;
+  return t.split(/\s+/).every(w=>{
+    if(!w)return true;
+    const neg=w[0]==='-'||w[0]==='!';if(neg)w=w.slice(1);if(!w)return true;
+    let ok;
+    if(w==='is:new')ok=f.st==='A';else if(w==='is:deleted')ok=f.st==='D';else if(w==='is:gen')ok=isGen(f);
+    else if(w==='is:unviewed')ok=!isViewed(f);else if(w==='is:changed')ok=!!viewedTree(f);else if(w==='is:untracked')ok=!!f.u;
+    else if(w==='has:note')ok=cmFor(f).some(c=>!c.resolved);else if(w==='has:match')ok=SR.by.has(fpath(f));
+    else if(w.includes('*'))ok=new RegExp('(^|/)'+w.replace(/[.+?^${}()|[\]\\]/g,'\\$&').replace(/\*\*/g,'\0').replace(/\*/g,'[^/]*').replace(/\0/g,'.*')+'$').test(p)||new RegExp(w.replace(/[.+?^${}()|[\]\\]/g,'\\$&').replace(/\*/g,'.*')).test(p);
+    else ok=p.includes(w);
+    return neg?!ok:ok;
+  });
+}
+
+// ---- jumping to a line (renders the file, expands a hidden gap if needed, flashes the row) ----
+const rowOf=(e,side,line)=>{const rs=e.body.querySelectorAll('tr[data-'+side+'="'+line+'"]');return rs[rs.length-1]||null};
+function jumpLine(e,side,line,after){
+  if(!e)return;
+  e.sec.classList.remove('collapsed','hid');e.force=true;
+  if(!e.rendered)render(e);
+  let n=0,expanded=false;
+  (function look(){
+    const x=e.body._e||e,r=rowOf(e,side,line);
+    if(r){r.scrollIntoView({block:'center'});r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash');if(after)after(r);return}
+    if(x.full&&!expanded){expanded=true;reveal(x,side,line);render(x)}
+    if(n++<80)setTimeout(look,50);
+  })();
+}
+const entryFor=path=>order.find(e=>fpath(e.f)===path||e.f.old===path);
+
+// ---- moved code: blocks of 3+ lines removed in one place and added in another ----
+let MV=new Map();
+function computeMoves(files){
+  const mv=new Map(),dels=[],adds=[],idx=new Map();let total=0;
+  files.forEach(f=>{
+    if(f.bin)return;const path=fpath(f);
+    f.hunks.forEach((h,hi)=>{
+      let o=h.os,n=h.ns,cur=null,ct='',op=0;
+      for(const l of h.l){
+        const c=l[0];if(c==='\\')continue;total++;
+        if(c==='-'||c==='+'){
+          if(ct===''||ct===' ')op++;
+          if(c!==ct){cur={path,old:f.old||path,op:path+'#'+hi+'#'+op,lines:[],nums:[]};(c==='-'?dels:adds).push(cur);ct=c}
+          cur.lines.push(l.slice(1).trim());cur.nums.push(c==='-'?o++:n++);
+        }else{o++;n++;ct=' '}
+      }
+    });
+  });
+  if(total>200000)return mv;
+  const sig=s=>s.length>=4&&/[\w$]/.test(s); // ignore blank/brace-only lines as anchors
+  dels.forEach(d=>d.lines.forEach((t,j)=>{if(!sig(t))return;let a=idx.get(t);if(!a)idx.set(t,a=[]);if(a.length<50)a.push([d,j])}));
+  for(const a of adds){
+    for(let i=0;i<a.lines.length;){
+      let best=null,bl=0;
+      for(const [d,j] of idx.get(a.lines[i])||[]){
+        if(d.op===a.op)continue; // same edit spot: a rewrite, not a move
+        let k=0;while(i+k<a.lines.length&&j+k<d.lines.length&&a.lines[i+k]===d.lines[j+k])k++;
+        if(k>bl){bl=k;best=[d,j]}
+      }
+      const chars=bl?a.lines.slice(i,i+bl).join('').length:0;
+      if(best&&bl>=3&&chars>=40){
+        const [d,j]=best;
+        for(let k=0;k<bl;k++){
+          mv.set(a.path+'|n|'+a.nums[i+k],{path:d.old,side:'o',line:d.nums[j+k],first:k===0,n:bl});
+          mv.set(d.path+'|o|'+d.nums[j+k],{path:a.path,side:'n',line:a.nums[i+k],first:k===0,n:bl});
+        }
+        i+=bl;
+      }else i++;
+    }
+  }
+  return mv;
+}
+
+// ---- per-row decoration: moved code, coverage gutter, search hits ----
+function decorate(e){
+  const tbl=e.body.querySelector('table');if(!tbl)return;
+  const path=fpath(e.f),oldp=e.f.old||path,split=tbl.classList.contains('s');
+  const cov=COV&&COV.files&&COV.files[path],hits=SR.by.get(path);
+  const covH=cov&&cov.set||(cov&&(cov.set={h:new Set(cov.hit),m:new Set(cov.miss)}));
+  for(const r of tbl.rows){
+    if(r.classList.contains('hh')||r.classList.contains('cmr'))continue;
+    const o=r.dataset.o,n=r.dataset.n;
+    r.classList.toggle('fhit',!!hits&&((n&&hits.has('n'+n))||(o&&!n&&hits.has('o'+o))));
+    for(const td of r.cells){td.classList.remove('mv','cv1','cv0');const l=td.querySelector('.mvl');if(l)l.remove()}
+    r.classList.remove('unt');
+    // moved
+    const mark=(side,line,ci)=>{
+      const m=MV.get((side==='o'?oldp:path)+'|'+side+'|'+line);if(!m)return;
+      const tdN=r.cells[ci],tdC=r.cells[ci+(split?1:(side==='o'?2:1))];
+      if(!tdC||!(tdC.classList.contains('a')||tdC.classList.contains('d')))return;
+      tdN.classList.add('mv');tdC.classList.add('mv');
+      if(m.first)tdC.insertAdjacentHTML('beforeend','<span class="mvl" data-mp="'+escA(m.path)+'" data-ms="'+m.side+'" data-ml="'+m.line+'" title="'+m.n+' lines moved — click to jump">'+(side==='n'?'moved from ':'moved to ')+esc(m.path)+':'+m.line+'</span>');
+    };
+    if(split){if(o)mark('o',o,0);if(n)mark('n',n,2)}
+    else if(n&&!o)mark('n',n,0);else if(o&&!n)mark('o',o,0);
+    // coverage (new side)
+    if(covH&&n){
+      const td=r.cells[split?2:1],h=covH.h.has(+n),m=!h&&covH.m.has(+n);
+      if(h||m){td.classList.add(h?'cv1':'cv0');if(m&&!o)r.classList.add('unt')}
+    }
+  }
+}
+filesEl.addEventListener('click',ev=>{
+  const m=ev.target.closest('.mvl');if(!m)return;ev.stopPropagation();
+  jumpLine(entryFor(m.dataset.mp),m.dataset.ms,+m.dataset.ml);
+});
+const redecorate=()=>{for(const e of order)if(e.rendered)decorate(e.body._e||e);mmSoon()};
+
+// ---- change navigation: n / p step through every change block in the diff ----
+let CH=null,chAt=-1;
+function changeList(){
+  if(CH)return CH;CH=[];
+  order.forEach((e,fi)=>{if(e.sec.classList.contains('hid'))return;
+    for(const h of e.f.hunks){let o=h.os,n=h.ns,prev=' ';
+      for(const l of h.l){const c=l[0];if(c==='\\')continue;
+        if((c==='-'||c==='+')&&prev===' ')CH.push({fi,side:c==='-'?'o':'n',line:c==='-'?o:n});
+        if(c==='-')o++;else if(c==='+')n++;else{o++;n++}
+        prev=c==='-'||c==='+'?'x':' ';
+      }}});
+  return CH;
+}
+function stepChange(d){
+  const L=changeList();if(!L.length)return;
+  const ci=curIndex();
+  if(chAt<0||!L[chAt]||(L[chAt].fi!==ci&&Math.abs(L[chAt].fi-ci)>0)){ // re-sync to the file in view
+    chAt=d>0?L.findIndex(c=>c.fi>=ci)-1:L.findIndex(c=>c.fi>=ci);
+    if(chAt<-1)chAt=L.length-1;
+  }
+  chAt=Math.max(0,Math.min(L.length-1,chAt+d));
+  const c=L[chAt];
+  if(c.fi>=0&&order[c.fi]){
+    const e=order[c.fi];toast(true,'Change '+(chAt+1)+' of '+L.length+' · '+fpath(e.f));
+    jumpLine(e,c.side,c.line);
+  }
+}
+
+// ---- search across the whole diff (finds text in files that aren't rendered yet) ----
+const SR={q:'',list:[],at:-1,by:new Map(),re:null};
+let fCase=!!pref('fcase',false),fRe=!!pref('fre',false),fChg=!!pref('fchg',false);
+function findOpen(){$('find').hidden=false;const i=$('findIn');i.focus();i.select();syncFindOpts()}
+function findClose(){$('find').hidden=true;SR.q='';SR.list=[];SR.by=new Map();SR.at=-1;$('findN').textContent='';clearMarks();redecorate();sidebar()}
+function syncFindOpts(){$('fCase').classList.toggle('on',fCase);$('fRe').classList.toggle('on',fRe);$('fChg').classList.toggle('on',fChg)}
+function findRun(jump){
+  const q=$('findIn').value;SR.q=q;SR.list=[];SR.by=new Map();SR.at=-1;$('findIn').classList.remove('bad');
+  if(!q){$('findN').textContent='';redecorate();sidebar();return}
+  let re;try{re=new RegExp(fRe?q:q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),fCase?'g':'gi')}catch(_){$('findIn').classList.add('bad');$('findN').textContent='bad regex';return}
+  SR.re=re;
+  order.forEach((e,fi)=>{
+    const path=fpath(e.f);
+    for(const h of e.f.hunks){let o=h.os,n=h.ns;
+      for(const l of h.l){const c=l[0];if(c==='\\')continue;
+        const side=c==='-'?'o':'n',line=c==='-'?o:n;
+        if(!(fChg&&c===' ')){re.lastIndex=0;if(re.test(l.slice(1))){
+          SR.list.push({fi,side,line});let s=SR.by.get(path);if(!s)SR.by.set(path,s=new Set());s.add(side+line);
+          if(SR.list.length>=5000)break}}
+        if(c==='-')o++;else if(c==='+')n++;else{o++;n++}
+      }}
+  });
+  $('findN').textContent=SR.list.length?'0/'+SR.list.length+(SR.list.length>=5000?'+':''):'no results';
+  redecorate();sidebar();
+  if(jump&&SR.list.length)findStep(1);
+}
+function clearMarks(){for(const m of filesEl.querySelectorAll('mark.fm')){const p=m.parentNode;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize()}}
+function markRow(r){
+  clearMarks();if(!SR.re)return;
+  for(const td of r.querySelectorAll('td.c')){
+    const w=document.createTreeWalker(td,NodeFilter.SHOW_TEXT),nodes=[];let t;while((t=w.nextNode()))if(!t.parentElement.closest('.mvl,.ne'))nodes.push(t);
+    for(const node of nodes){
+      const re=new RegExp(SR.re.source,SR.re.flags);let m,last=0,out=[],s=node.data;
+      while((m=re.exec(s))){if(!m[0].length){re.lastIndex++;continue}out.push(s.slice(last,m.index),m[0]);last=m.index+m[0].length}
+      if(!out.length)continue;out.push(s.slice(last));
+      const fr=document.createDocumentFragment();
+      out.forEach((p,i)=>{if(!p)return;if(i%2){const mk=document.createElement('mark');mk.className='fm';mk.textContent=p;fr.appendChild(mk)}else fr.appendChild(document.createTextNode(p))});
+      node.parentNode.replaceChild(fr,node);
+    }
+  }
+}
+function findStep(d){
+  if(!SR.list.length)return;
+  SR.at=(SR.at+d+SR.list.length)%SR.list.length;const m=SR.list[SR.at];
+  $('findN').textContent=(SR.at+1)+'/'+SR.list.length;
+  jumpLine(order[m.fi],m.side,m.line,markRow);
+}
+let findT=0;
+$('findIn').addEventListener('input',()=>{clearTimeout(findT);findT=setTimeout(()=>findRun(true),180)});
+$('findIn').addEventListener('keydown',ev=>{
+  if(ev.key==='Enter'){ev.preventDefault();if(SR.q!==$('findIn').value)findRun(true);else findStep(ev.shiftKey?-1:1)}
+  else if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();findClose();$('findIn').blur()}
+});
+$('fCase').onclick=()=>{fCase=!fCase;setPref('fcase',fCase);syncFindOpts();findRun(false)};
+$('fRe').onclick=()=>{fRe=!fRe;setPref('fre',fRe);syncFindOpts();findRun(false)};
+$('fChg').onclick=()=>{fChg=!fChg;setPref('fchg',fChg);syncFindOpts();findRun(false)};
+$('fNext').onclick=()=>findStep(1);$('fPrev').onclick=()=>findStep(-1);$('fClose').onclick=findClose;
+
+// ---- semantic change map (tree-sitter): symbols added/removed/renamed/modified + references ----
+let SEM=[],semT=0,tab='files';const symOpen=new Set();
+function semSoon(){clearTimeout(semT);semT=setTimeout(loadSem,300)}
+async function loadSem(){
+  const p=new URLSearchParams(qs);for(const k of ['from','c','c0','s0','s1'])p.delete(k);
+  try{const r=await fetch('/api/semantic?'+p,{cache:'no-store'});if(!r.ok)return;SEM=(await r.json()).files||[]}catch(_){return}
+  renderSyms();
+}
+const symName=y=>(y.qual?y.qual+'.':'')+y.name;
+const SKIND={function:'func',method:'method',class:'class',type:'type',interface:'iface',module:'module',constant:'const',variable:'var',field:'field',macro:'macro',enum:'enum',struct:'struct',trait:'trait',impl:'impl'};
+function setTab(t){tab=t;for(const b of $('stab').children)b.classList.toggle('on',b.dataset.t===t);$('list').hidden=t!=='files';$('syml').hidden=t!=='syms';if(t==='syms')renderSyms()}
+$('stab').addEventListener('click',ev=>{const b=ev.target.closest('button');if(b)setTab(b.dataset.t)});
+function renderSyms(){
+  let n={added:0,removed:0,modified:0,renamed:0},sig=0,dang=0,tot=0;
+  for(const f of SEM)for(const y of f.syms){n[y.change]++;tot++;if(y.sig)sig++;if((y.change==='removed'||y.change==='renamed')&&y.refs>0)dang++}
+  $('stF').textContent=order.length||'';$('stS').textContent=tot||'';$('stS').classList.toggle('warn',dang>0);
+  if(dang)$('stS').textContent=tot+' ⚠';
+  if(tab!=='syms')return;
+  const t=$('filter').value.trim().toLowerCase();
+  if(!SEM.length){$('syml').innerHTML='<div class="msg">No symbol-level changes found.<br>The change map covers Go, Python, JS/TS, Java, Rust, Ruby, C/C++, C# and Scala.</div>';return}
+  let h='<div class="sum">'+[n.added&&'<span class="c-added">+'+n.added+' added</span>',n.modified&&'<span class="c-modified">~'+n.modified+' modified</span>',
+    n.renamed&&'<span class="c-renamed">⇄'+n.renamed+' renamed</span>',n.removed&&'<span class="c-removed">−'+n.removed+' removed</span>'].filter(Boolean).join(' · ')+
+    (sig?'<br>'+sig+' signature change'+(sig>1?'s':''):'')+(dang?'<br><span class="warn">⚠ '+dang+' removed/renamed symbol'+(dang>1?'s are':' is')+' still referenced</span>':'')+'</div>';
+  const CHR={added:'+',removed:'−',modified:'~',renamed:'⇄'};
+  const isNew=f=>f.syms.every(y=>y.change==='added'),files=SEM.slice().sort((a,b)=>isNew(a)-isNew(b));
+  for(const f of files){
+    const ys=t?f.syms.filter(y=>(symName(y)+' '+f.path).toLowerCase().includes(t)):f.syms;if(!ys.length)continue;
+    const fold=isNew(f)&&!t&&!symOpen.has(f.path);
+    h+='<div class="sg" data-p="'+escA(f.path)+'" title="'+escA(f.path)+'">'+(isNew(f)?'<span class="car" style="display:inline-block;'+(fold?'transform:rotate(-90deg)':'')+'">▾</span> ':'')+esc(f.path)+(isNew(f)?' <span style="font-weight:400" class="c-added">· '+f.syms.length+' new</span>':'')+'</div>';
+    if(fold)continue;
+    ys.forEach(y=>{
+      const i=f.syms.indexOf(y),warn=(y.change==='removed'||y.change==='renamed')&&y.refs>0;
+      const tip=y.change==='renamed'?'Renamed from '+y.from:y.sig?'Signature changed:\n− '+y.oldSig+'\n+ '+y.newSig:'';
+      h+='<div class="sy" data-p="'+escA(f.path)+'" data-i="'+i+'" title="'+escA(tip||symName(y))+'"><span class="ch c-'+y.change+'">'+CHR[y.change]+'</span><span class="kd">'+esc(SKIND[y.kind]||y.kind)+'</span>'+
+        '<span class="nm">'+(y.qual?'<i>'+esc(y.qual)+'.</i>':'')+esc(y.name)+(y.from?' <i>← '+esc(y.from)+'</i>':'')+'</span>'+
+        (y.sig?'<span class="pill sig">sig</span>':'')+
+        (y.refs>0?'<span class="pill rf'+(warn?' warn':'')+'" data-ref="1" title="'+(warn?'Still referenced under the old name — possibly broken callers. Click to list them.':'Uses of this symbol in the new code — click to list them')+'">'+(warn?'⚠ ':'')+y.refs+' ref'+(y.refs>1?'s':'')+(y.refFiles>1?' · '+y.refFiles+' files':'')+'</span>':'')+
+        '<span class="ct">'+(y.add?'<span class="ad">+'+y.add+'</span> ':'')+(y.del?'<span class="dl">−'+y.del+'</span>':'')+'</span></div>';
+    });
+  }
+  $('syml').innerHTML=h;
+}
+function jumpSym(path,y){
+  const e=entryFor(path);if(!e){toast(false,path+' isn’t in this diff');return}
+  if(y.change==='removed')jumpLine(e,'o',y.oldLine);else jumpLine(e,'n',y.line);
+}
+$('syml').addEventListener('click',ev=>{
+  const g=ev.target.closest('.sg');if(g){
+    const f=SEM.find(x=>x.path===g.dataset.p);
+    if(f&&f.syms.every(y=>y.change==='added')){if(symOpen.has(f.path))symOpen.delete(f.path);else symOpen.add(f.path);renderSyms();return}
+    const e=entryFor(g.dataset.p);if(e){e.sec.classList.remove('collapsed');go(order.indexOf(e))}return}
+  const s=ev.target.closest('.sy');if(!s)return;
+  const f=SEM.find(x=>x.path===s.dataset.p),y=f&&f.syms[+s.dataset.i];if(!y)return;
+  if(ev.target.closest('[data-ref]')){navGo(y.change==='renamed'?y.from:y.name,sideRev('n'),f.path,'refs');return}
+  jumpSym(f.path,y);
+});
+
+// ---- test coverage overlay ----
+let COV=null;
+async function loadCov(){
+  if(!D||!D.files)return;
+  try{const r=await fetch('/api/coverage',{method:'POST',headers:{'X-Refdiff':'1','Content-Type':'application/json'},body:JSON.stringify(D.files.map(fpath))});if(!r.ok)return;COV=await r.json()}catch(_){return}
+  covSummary();redecorate();
+}
+function covOfFile(e){ // added lines with coverage data in this file
+  const cf=COV&&COV.files&&COV.files[fpath(e.f)];if(!cf)return null;
+  const set=cf.set||(cf.set={h:new Set(cf.hit),m:new Set(cf.miss)});
+  const hit=[],miss=[];
+  for(const h of e.f.hunks){let n=h.ns;for(const l of h.l){const c=l[0];if(c==='\\'||c==='-')continue;if(c==='+'){if(set.h.has(n))hit.push(n);else if(set.m.has(n))miss.push(n)}n++}}
+  return {hit,miss,stale:cf.stale};
+}
+let UNT=[],untAt=-1;
+function covSummary(){
+  const el=$('covs');UNT=[];untAt=-1;
+  if(!COV||!COV.found){el.hidden=true;for(const e of order)e.covp.hidden=true;return}
+  let H=0,M=0,stale=false;
+  order.forEach((e,fi)=>{
+    const c=covOfFile(e);if(!c||!(c.hit.length+c.miss.length)){e.covp.hidden=true;return}
+    H+=c.hit.length;M+=c.miss.length;stale=stale||c.stale;
+    for(const l of c.miss)UNT.push({fi,line:l});
+    const pct=Math.round(100*c.hit.length/(c.hit.length+c.miss.length));
+    e.covp.hidden=false;e.covp.className='covp '+(pct>=80?'good':pct>=50?'mid':'bad');
+    e.covp.textContent=pct+'% covered';e.covp.title=c.hit.length+' new lines run by tests, '+c.miss.length+' not'+(c.stale?' (report is older than this file)':'')+(c.miss.length?' — click for the next untested line':'');
+  });
+  if(!(H+M)){el.hidden=false;el.innerHTML='Coverage: <b>'+esc(COV.file)+'</b> has no data for the changed lines';return}
+  const pct=Math.round(100*H/(H+M));
+  el.hidden=false;
+  el.innerHTML='New code covered: <b>'+pct+'%</b>'+(M?' · <span class="bad">'+M+' untested line'+(M>1?'s':'')+' ›</span>':' ✓')+(stale?' · <span title="Some files changed after '+escA(COV.file)+' was written; rerun tests">stale</span>':'');
+  el.title='From '+COV.file+' ('+new Date(COV.at).toLocaleString()+'). Click to jump to the next untested line.';
+}
+function nextUntested(e){
+  const L=e?UNT.filter(u=>order[u.fi]===e):UNT;if(!L.length){toast(true,'No untested new lines'+(e?' in this file':'')+'.');return}
+  untAt=(untAt+1)%L.length;const u=L[untAt];jumpLine(order[u.fi],'n',u.line);
+}
+$('covs').onclick=()=>nextUntested();
+
+// ---- minimap: the whole diff at a glance (changes, notes, search hits, untested lines) ----
+const MM=$('mm'),MMC=MM.querySelector('canvas');let mmT=0;
+function mmSoon(){if(!mmT)mmT=requestAnimationFrame(()=>{mmT=0;mmDraw()})}
+function mmDraw(){
+  const H=MM.clientHeight,W=MM.clientWidth,dpr=devicePixelRatio||1;if(!H)return;
+  MMC.width=W*dpr;MMC.height=H*dpr;const g=MMC.getContext('2d');g.scale(dpr,dpr);g.clearRect(0,0,W,H);
+  const docH=Math.max(1,document.documentElement.scrollHeight),k=H/docH,cs=getComputedStyle(document.documentElement);
+  const col={a:cs.getPropertyValue('--addfg'),d:cs.getPropertyValue('--delfg'),n:'#d29922',s:'#d29922',u:cs.getPropertyValue('--unc'),m:cs.getPropertyValue('--mv'),c:'#d97757'};
+  for(const e of order){
+    if(e.sec.classList.contains('hid'))continue;
+    const top=e.sec.getBoundingClientRect().top+scrollY;
+    g.fillStyle=cs.getPropertyValue('--bd');g.fillRect(0,top*k,W,1);
+    if(e.sec.classList.contains('collapsed'))continue;
+    const path=fpath(e.f),hits=SR.by.get(path),cf=COV&&COV.files&&COV.files[path],ms=cf&&(cf.set||(cf.set={h:new Set(cf.hit),m:new Set(cf.miss)}));
+    // real row positions when rendered; otherwise estimate 20px rows
+    if(e.rendered&&e.body.querySelector('table')){
+      for(const r of e.body.querySelector('table').rows){
+        const cl=r.cells[r.cells.length-1];if(!cl)continue;
+        const y=(r.getBoundingClientRect().top+scrollY)*k,h=Math.max(1,r.offsetHeight*k);
+        let c=null;
+        if(r.classList.contains('cmr'))c=col.c;
+        else if(r.querySelector('td.c.mv'))c=col.m;
+        else if(r.querySelector('td.c.a'))c=col.a;else if(r.querySelector('td.c.d'))c=col.d;
+        if(c){g.fillStyle=c;g.fillRect(3,y,W-6,h)}
+        if(r.classList.contains('fhit')){g.fillStyle=col.s;g.fillRect(0,y,3,Math.max(2,h))}
+        if(r.classList.contains('unt')){g.fillStyle=col.u;g.fillRect(W-3,y,3,Math.max(2,h))}
+      }
+    }else{
+      let y=top+34;
+      for(const hk of e.f.hunks){y+=20;let n=hk.ns,o=hk.os;
+        for(const l of hk.l){const c=l[0];if(c==='\\')continue;
+          if(c==='+'||c==='-'){g.fillStyle=c==='+'?col.a:col.d;g.fillRect(3,y*k,W-6,Math.max(1,20*k))}
+          if(hits&&hits.has((c==='-'?'o'+o:'n'+n))){g.fillStyle=col.s;g.fillRect(0,y*k,3,Math.max(2,20*k))}
+          if(ms&&c==='+'&&ms.m.has(n)){g.fillStyle=col.u;g.fillRect(W-3,y*k,3,Math.max(2,20*k))}
+          if(c==='-')o++;else if(c==='+')n++;else{o++;n++}
+          y+=20;
+        }}
+    }
+  }
+  mmView();
+}
+function mmView(){
+  const H=MM.clientHeight,docH=Math.max(1,document.documentElement.scrollHeight),v=$('mmv');
+  v.style.top=(scrollY/docH*H)+'px';v.style.height=Math.max(8,innerHeight/docH*H)+'px';
+}
+let mmDrag=false;
+const mmTo=ev=>{const r=MM.getBoundingClientRect(),docH=document.documentElement.scrollHeight;window.scrollTo(0,(ev.clientY-r.top)/r.height*docH-innerHeight/2)};
+MM.addEventListener('mousedown',ev=>{mmDrag=true;mmTo(ev);ev.preventDefault()});
+addEventListener('mousemove',ev=>{if(mmDrag)mmTo(ev)});
+addEventListener('mouseup',()=>{if(mmDrag){mmDrag=false;mmSoon()}});
+addEventListener('scroll',mmView,{passive:true});
+addEventListener('resize',mmSoon);
+new ResizeObserver(mmSoon).observe(filesEl);
+
 // ---- apply data ----
 function apply(d){
   const first=!D;D=d;
@@ -1451,7 +1868,10 @@ function apply(d){
   if(!same){const fr=document.createDocumentFragment();for(const e of next)fr.appendChild(e.sec);filesEl.appendChild(fr)}
   order=next;
   let A=0,R=0;for(const f of d.files){A+=f.add;R+=f.del}
-  $('stats').innerHTML=d.files.length+' file'+(d.files.length===1?'':'s')+' · <span class="ad">+'+A+'</span> <span class="dl">−'+R+'</span> · '+d.ms+'ms';
+  $('stats').innerHTML=d.files.length+' file'+(d.files.length===1?'':'s')+' · <span class="ad">+'+A+'</span> <span class="dl">−'+R+'</span> · '+d.ms+'ms'+(d.ws?' · <a href="#" id="wsOff" title="Whitespace changes are hidden (W)">whitespace ignored</a>':'');
+  if(d.ws)$('wsOff').onclick=ev=>{ev.preventDefault();setWS(false)};
+  MV=computeMoves(d.files);CH=null;if(!$('find').hidden)findRun(false);
+  semSoon();loadCov();
   $('stats').title=d.cmd;
   $('empty').style.display=d.files.length?'none':'block';
   sidebar();restore(a);dropStaleSel();
@@ -1476,6 +1896,7 @@ function live(){
   es.addEventListener('c',ev=>{if(ev.data!==cmStamp)loadComments()});
   es.addEventListener('a',agSoon);
   es.addEventListener('t',()=>loadTimeline());
+  es.addEventListener('cov',()=>loadCov());
   es.onopen=()=>{$('live').classList.add('on');$('live').lastChild.textContent='live'};
   es.onerror=()=>{$('live').classList.remove('on');$('live').lastChild.textContent='offline'};
 }
@@ -1573,15 +1994,20 @@ addEventListener('keydown',ev=>{
   const t=ev.target;if(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'){if(ev.key==='Escape')t.blur();return}
   const i=order.length?curIndex():0, e=order[i];
   switch(ev.key){
-    case 'j':case 'n':go(Math.min(i+1,order.length-1));break;
-    case 'k':case 'p':go(Math.max(i-1,0));break;
+    case 'j':go(Math.min(i+1,order.length-1));break;
+    case 'k':go(Math.max(i-1,0));break;
+    case 'n':stepChange(1);break;
+    case 'p':stepChange(-1);break;
+    case 'f':ev.preventDefault();findOpen();break;
+    case 'o':setTab(tab==='syms'?'files':'syms');break;
+    case 'W':setWS(!(D&&D.ws));break;
     case 's':setMode(mode==='s'?'u':'s');break;
     case 'w':setWrap(!wrap);break;
     case 'h':setSyntax(!syntax);break;
     case 'v':if(e){e.cb.checked=!e.cb.checked;setViewed(e,e.cb.checked);go(i)}break;
     case 'x':if(e){e.sec.classList.toggle('collapsed');go(i)}break;
     case '/':ev.preventDefault();$('filter').focus();break;
-    case 'Escape':if(!$('rv').hidden)rvToggle(false);else if(!$('nav').hidden)nvClose();else if(sel)clearSel();else if(draft)cancelDraft();break;
+    case 'Escape':if(!$('find').hidden)findClose();else if(!$('rv').hidden)rvToggle(false);else if(!$('nav').hidden)nvClose();else if(sel)clearSel();else if(draft)cancelDraft();break;
     case 't':ev.preventDefault();palOpen();break;
     case 'r':rvToggle();break;
     case 'm':if(sel){ev.preventDefault();startNote()}else return;break;
